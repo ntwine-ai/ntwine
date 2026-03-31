@@ -48,6 +48,18 @@ public partial class MainWindow : Window
         };
     }
 
+    private void OnRemoveModelClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string modelId && _vm != null)
+        {
+            var model = _vm.SelectedModels.FirstOrDefault(m => m.ModelId == modelId);
+            if (model != null)
+            {
+                _vm.RemoveModelCommand.Execute(model);
+            }
+        }
+    }
+
     private void OnModelRowClick(object? sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is string modelId && _vm != null)

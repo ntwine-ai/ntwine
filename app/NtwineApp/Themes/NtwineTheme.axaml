@@ -70,11 +70,40 @@
     <Style Selector="TextBox.composer-input">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Foreground" Value="#e8e0f4" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Watermark" Value="describe what you want to build..." />
         <Setter Property="AcceptsReturn" Value="True" />
         <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="CaretBrush" Value="#8b7cf8" />
+    </Style>
+
+    <Style Selector="TextBox.composer-input:focus">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TextBox.composer-input:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TextBox.composer-input:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TextBox.composer-input /template/ Border#PART_BorderElement">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Border.composer:focus-within">
+        <Setter Property="BorderBrush" Value="#8b7cf8" />
     </Style>
 
     <Style Selector="Button.primary">
