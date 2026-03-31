@@ -1,0 +1,167 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:NtwineApp.ViewModels"
+        x:Class="NtwineApp.MainWindow"
+        Title="ntwine"
+        Width="1200"
+        Height="800"
+        MinWidth="800"
+        MinHeight="600"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="38"
+        SystemDecorations="Full">
+
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <Grid ColumnDefinitions="260,*">
+
+        <Border Grid.Column="0" Classes="sidebar">
+            <DockPanel>
+
+                <StackPanel DockPanel.Dock="Top" Margin="16,48,16,12">
+                    <TextBlock Text="ntwine" FontSize="18" FontWeight="Bold" Foreground="#8b7cf8" />
+                    <TextBlock Text="AI agents that code together" Classes="muted" Margin="0,2,0,0" />
+                </StackPanel>
+
+                <Button DockPanel.Dock="Top" Classes="primary" Margin="16,4,16,12"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Content="New Discussion" Command="{Binding NewDiscussionCommand}" />
+
+                <Border DockPanel.Dock="Top" Background="#1a1425" CornerRadius="8" Margin="16,0,16,12" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="PROJECT" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding ProjectPath, FallbackValue='click to select...'}"
+                                   FontSize="12" Foreground="#b0a4c8" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Border>
+
+                <ScrollViewer DockPanel.Dock="Top" Margin="8,0">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="RECENT" Classes="muted" Margin="8,8,0,4" FontSize="10" FontWeight="SemiBold" />
+                        <ItemsControl ItemsSource="{Binding Threads}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Classes="sidebar-item" Content="{Binding Title}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="16,0,16,16" Spacing="4">
+                    <Separator Background="#1e1730" Height="1" Margin="0,0,0,8" />
+                    <Button Classes="ghost" Content="Settings" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+                    <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="Credits:" FontSize="12" />
+                            <TextBlock Text="{Binding CreditsRemaining, FallbackValue='$0.00'}" FontSize="12" Foreground="#10b981" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto">
+
+            <Border Grid.Row="0" Background="#110d18" Padding="16,10" BorderBrush="#1e1730" BorderThickness="0,0,0,1">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                        <Border Background="#1e1730" CornerRadius="6" Padding="8,4">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="{Binding AgentCount, FallbackValue='3'}" FontSize="12" FontWeight="Bold" Foreground="#8b7cf8" />
+                                <TextBlock Text="agents" FontSize="12" Classes="muted" />
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#1e1730" CornerRadius="6" Padding="8,4">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="{Binding ToolCount, FallbackValue='15'}" FontSize="12" FontWeight="Bold" Foreground="#10b981" />
+                                <TextBlock Text="tools" FontSize="12" Classes="muted" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <TextBlock DockPanel.Dock="Left" Text="{Binding CurrentDiscussionTitle, FallbackValue='New Discussion'}"
+                               Classes="heading" FontSize="16" VerticalAlignment="Center" />
+                </DockPanel>
+            </Border>
+
+            <ScrollViewer Grid.Row="1" Padding="24,16">
+                <ItemsControl ItemsSource="{Binding Messages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#1e1730" CornerRadius="12" Padding="14,10" Margin="0,3">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border Width="8" Height="8" CornerRadius="4" Background="{Binding AgentColor}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding AgentName}" FontSize="12" FontWeight="SemiBold" Foreground="{Binding AgentColor}" />
+                                        <TextBlock Text="{Binding Timestamp}" Classes="muted" FontSize="10" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="14" Foreground="#e8e0f4" Margin="16,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <Border Grid.Row="2" Margin="24,0,24,16">
+                <StackPanel>
+
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ItemsControl ItemsSource="{Binding SelectedModels}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="6" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="16" Background="#1e1730" BorderBrush="#2a2238" BorderThickness="1" Padding="10,5">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <Border Width="6" Height="6" CornerRadius="3" Background="{Binding Color}" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="#b0a4c8" />
+                                                <TextBlock Text="{Binding CostLabel}" FontSize="10" Foreground="#7a6f96" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Classes="ghost" Content="+ Add Model" FontSize="12" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Border Classes="composer">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                <Button Classes="ghost" FontSize="11">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="5" FontWeight="Bold" Foreground="#8b7cf8" />
+                                        <TextBlock Text="rounds" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="ghost" Content="Plan" FontSize="11" />
+                                <Button Classes="ghost" Content="Execute" FontSize="11" />
+                                <Button Classes="ghost" Content="Review" FontSize="11" />
+                                <Border Width="1" Height="16" Background="#2a2238" Margin="4,0" />
+                                <Button Classes="ghost" Content="MCP" FontSize="11" />
+                                <Button Classes="ghost" Content="Skills" FontSize="11" />
+                            </StackPanel>
+
+                            <Grid>
+                                <TextBox Classes="composer-input" Text="{Binding PromptText}" MinHeight="60" MaxHeight="200" />
+                                <Button Classes="primary" Content="Start" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                        Margin="0,0,4,4" Command="{Binding StartDiscussionCommand}" />
+                            </Grid>
+                        </DockPanel>
+                    </Border>
+
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </Grid>
+</Window>

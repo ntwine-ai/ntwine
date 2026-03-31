@@ -1,0 +1,174 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="Window">
+        <Setter Property="Background" Value="#110d18" />
+        <Setter Property="Foreground" Value="#e8e0f4" />
+    </Style>
+
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="#e8e0f4" />
+    </Style>
+
+    <Style Selector="TextBlock.heading">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="#e8e0f4" />
+    </Style>
+
+    <Style Selector="TextBlock.subtext">
+        <Setter Property="Foreground" Value="#b0a4c8" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="TextBlock.muted">
+        <Setter Property="Foreground" Value="#7a6f96" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.accent">
+        <Setter Property="Foreground" Value="#8b7cf8" />
+    </Style>
+
+    <Style Selector="TextBlock.agent-claude">
+        <Setter Property="Foreground" Value="#8b5cf6" />
+    </Style>
+
+    <Style Selector="TextBlock.agent-deepseek">
+        <Setter Property="Foreground" Value="#3b82f6" />
+    </Style>
+
+    <Style Selector="TextBlock.agent-gemini">
+        <Setter Property="Foreground" Value="#10b981" />
+    </Style>
+
+    <Style Selector="TextBlock.agent-minimax">
+        <Setter Property="Foreground" Value="#ec4899" />
+    </Style>
+
+    <Style Selector="Border.surface">
+        <Setter Property="Background" Value="#1a1425" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="BorderBrush" Value="#2a2238" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <Style Selector="Border.sidebar">
+        <Setter Property="Background" Value="#0f0b15" />
+        <Setter Property="BorderBrush" Value="#1e1730" />
+        <Setter Property="BorderThickness" Value="0,0,1,0" />
+    </Style>
+
+    <Style Selector="Border.composer">
+        <Setter Property="Background" Value="#1a1425" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="BorderBrush" Value="#2a2238" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <Style Selector="TextBox.composer-input">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="#e8e0f4" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Watermark" Value="describe what you want to build..." />
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="#8b7cf8" />
+        <Setter Property="Foreground" Value="#ffffff" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Button.ghost">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#b0a4c8" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1e1730" />
+        <Setter Property="Foreground" Value="#e8e0f4" />
+    </Style>
+
+    <Style Selector="Button.sidebar-item">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#7a6f96" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Button.sidebar-item:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1e1730" />
+        <Setter Property="Foreground" Value="#e8e0f4" />
+    </Style>
+
+    <Style Selector="Button.model-pill">
+        <Setter Property="Background" Value="#1e1730" />
+        <Setter Property="Foreground" Value="#b0a4c8" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#2a2238" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Button.model-pill:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#2a2238" />
+        <Setter Property="BorderBrush" Value="#8b7cf8" />
+    </Style>
+
+    <Style Selector="Border.chat-bubble">
+        <Setter Property="Background" Value="#1e1730" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="Margin" Value="0,4" />
+    </Style>
+
+    <Style Selector="Border.chat-bubble-user">
+        <Setter Property="Background" Value="#2a1f45" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="Margin" Value="0,4" />
+    </Style>
+
+    <Style Selector="Border.tool-call">
+        <Setter Property="Background" Value="#0f1a1f" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Margin" Value="0,2" />
+        <Setter Property="BorderBrush" Value="#1a2a30" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <Style Selector="ScrollViewer">
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="0" />
+    </Style>
+</Styles>
