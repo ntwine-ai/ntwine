@@ -210,7 +210,8 @@
                                 </StackPanel>
 
                                 <Grid>
-                                    <TextBox Classes="composer-input" Text="{Binding PromptText}" MinHeight="50" MaxHeight="180" />
+                                    <TextBox Classes="borderless" Text="{Binding PromptText}" MinHeight="50" MaxHeight="180"
+                                             Watermark="describe what you want to build..." />
                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4">
                                         <Button Classes="ghost" Content="Stop" FontSize="11"
                                                 IsVisible="{Binding IsRunning}" Command="{Binding StopDiscussionCommand}" />

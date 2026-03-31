@@ -59,51 +59,37 @@
         <Setter Property="BorderThickness" Value="0,0,1,0" />
     </Style>
 
+    <Style Selector="TextBox.borderless">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#e8e0f4" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="CaretBrush" Value="#8b7cf8" />
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBox.borderless:focus">
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
     <Style Selector="Border.composer">
         <Setter Property="Background" Value="#1a1425" />
         <Setter Property="CornerRadius" Value="16" />
         <Setter Property="BorderBrush" Value="#2a2238" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="16" />
-    </Style>
-
-    <Style Selector="TextBox.composer-input">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Foreground" Value="#e8e0f4" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="Watermark" Value="describe what you want to build..." />
-        <Setter Property="AcceptsReturn" Value="True" />
-        <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="CaretBrush" Value="#8b7cf8" />
-    </Style>
-
-    <Style Selector="TextBox.composer-input:focus">
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-    </Style>
-
-    <Style Selector="TextBox.composer-input:focus /template/ Border#PART_BorderElement">
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <Style Selector="TextBox.composer-input:pointerover /template/ Border#PART_BorderElement">
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <Style Selector="TextBox.composer-input /template/ Border#PART_BorderElement">
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BoxShadow" Value="0 0 0 0 Transparent" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" />
+            </Transitions>
+        </Setter>
     </Style>
 
     <Style Selector="Border.composer:focus-within">
         <Setter Property="BorderBrush" Value="#8b7cf8" />
+        <Setter Property="BoxShadow" Value="0 0 12 0 #308b7cf8" />
     </Style>
 
     <Style Selector="Button.primary">
