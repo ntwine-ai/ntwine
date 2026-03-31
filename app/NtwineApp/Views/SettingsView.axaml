@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="NtwineApp.Views.SettingsView">
+
+    <Border Background="#0f0b15" CornerRadius="16" BorderBrush="#2a2238" BorderThickness="1"
+            Padding="24" Width="480">
+        <StackPanel Spacing="20">
+
+            <TextBlock Text="Settings" FontSize="18" FontWeight="Bold" Foreground="#e8e0f4" />
+
+            <StackPanel Spacing="6">
+                <TextBlock Text="OPENROUTER API KEY" FontSize="10" FontWeight="SemiBold" Foreground="#7a6f96" />
+                <TextBox Watermark="sk-or-..." PasswordChar="*"
+                         Text="{Binding OpenRouterKey}"
+                         Background="#1a1425" BorderBrush="#2a2238" BorderThickness="1"
+                         CornerRadius="8" Padding="10,8" FontSize="13" Foreground="#e8e0f4" />
+                <TextBlock Text="get yours at openrouter.ai/keys" FontSize="10" Foreground="#585070" />
+            </StackPanel>
+
+            <StackPanel Spacing="6">
+                <TextBlock Text="TAVILY API KEY (optional, for web search)" FontSize="10" FontWeight="SemiBold" Foreground="#7a6f96" />
+                <TextBox Watermark="tvly-..." PasswordChar="*"
+                         Text="{Binding TavilyKey}"
+                         Background="#1a1425" BorderBrush="#2a2238" BorderThickness="1"
+                         CornerRadius="8" Padding="10,8" FontSize="13" Foreground="#e8e0f4" />
+            </StackPanel>
+
+            <Separator Background="#1e1730" Height="1" />
+
+            <StackPanel Spacing="6">
+                <TextBlock Text="BRING YOUR OWN KEY" FontSize="10" FontWeight="SemiBold" Foreground="#7a6f96" />
+                <TextBlock Text="paste API keys from any provider to use your own billing. free, unlimited, no restrictions."
+                           FontSize="12" Foreground="#b0a4c8" TextWrapping="Wrap" />
+
+                <StackPanel Spacing="8" Margin="0,8,0,0">
+                    <DockPanel>
+                        <TextBlock Text="Anthropic" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" Width="100" />
+                        <TextBox Watermark="sk-ant-..." PasswordChar="*"
+                                 Text="{Binding AnthropicKey}"
+                                 Background="#1a1425" BorderBrush="#2a2238" BorderThickness="1"
+                                 CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" />
+                    </DockPanel>
+                    <DockPanel>
+                        <TextBlock Text="OpenAI" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" Width="100" />
+                        <TextBox Watermark="sk-..." PasswordChar="*"
+                                 Text="{Binding OpenAIKey}"
+                                 Background="#1a1425" BorderBrush="#2a2238" BorderThickness="1"
+                                 CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" />
+                    </DockPanel>
+                    <DockPanel>
+                        <TextBlock Text="Google" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" Width="100" />
+                        <TextBox Watermark="AIza..." PasswordChar="*"
+                                 Text="{Binding GoogleKey}"
+                                 Background="#1a1425" BorderBrush="#2a2238" BorderThickness="1"
+                                 CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" />
+                    </DockPanel>
+                    <DockPanel>
+                        <TextBlock Text="DeepSeek" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" Width="100" />
+                        <TextBox Watermark="sk-..." PasswordChar="*"
+                                 Text="{Binding DeepSeekKey}"
+                                 Background="#1a1425" BorderBrush="#2a2238" BorderThickness="1"
+                                 CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" />
+                    </DockPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <Separator Background="#1e1730" Height="1" />
+
+            <StackPanel Spacing="6">
+                <TextBlock Text="BACKEND" FontSize="10" FontWeight="SemiBold" Foreground="#7a6f96" />
+                <DockPanel>
+                    <TextBlock Text="Go backend URL" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" Width="120" />
+                    <TextBox Text="{Binding BackendUrl}" Watermark="localhost:8080"
+                             Background="#1a1425" BorderBrush="#2a2238" BorderThickness="1"
+                             CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" />
+                </DockPanel>
+                <Border Background="#1a1425" CornerRadius="8" Padding="10,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Width="8" Height="8" CornerRadius="4" Background="#10b981" VerticalAlignment="Center" />
+                        <TextBlock Text="connected" FontSize="11" Foreground="#10b981" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Button Classes="primary" Content="Save" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+
+        </StackPanel>
+    </Border>
+</UserControl>

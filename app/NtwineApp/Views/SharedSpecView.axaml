@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="NtwineApp.Views.SharedSpecView">
+
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="#1a1425" Padding="12,8" BorderBrush="#2a2238" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <TextBlock Text="Shared Spec" FontSize="13" FontWeight="SemiBold" Foreground="#8b7cf8" DockPanel.Dock="Left" />
+                <TextBlock Text="live" FontSize="10" Foreground="#10b981" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer Background="#0f0b15" Padding="16,12">
+            <TextBlock Text="{Binding SharedNotes, FallbackValue='the agents will write their plan here as they discuss...'}"
+                       TextWrapping="Wrap" FontSize="13" Foreground="#b0a4c8"
+                       FontFamily="JetBrains Mono,Menlo,monospace"
+                       LineHeight="22" />
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

@@ -49,6 +49,33 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _selectedProvider = "All";
 
+    [ObservableProperty]
+    private string _sharedNotes = "";
+
+    [ObservableProperty]
+    private bool _isSettingsOpen = false;
+
+    [ObservableProperty]
+    private string _openRouterKey = "";
+
+    [ObservableProperty]
+    private string _tavilyKey = "";
+
+    [ObservableProperty]
+    private string _anthropicKey = "";
+
+    [ObservableProperty]
+    private string _openAIKey = "";
+
+    [ObservableProperty]
+    private string _googleKey = "";
+
+    [ObservableProperty]
+    private string _deepSeekKey = "";
+
+    [ObservableProperty]
+    private string _backendUrl = "localhost:8080";
+
     public ObservableCollection<ChatMessage> Messages { get; } = new();
     public ObservableCollection<ModelSlot> SelectedModels { get; } = new();
     public ObservableCollection<ThreadItem> Threads { get; } = new();
@@ -149,6 +176,13 @@ public partial class MainViewModel : ObservableObject
                     {
                         Messages.Add(msg);
                         StatusText = $"round {Messages.Count / modelIds.Count + 1}";
+                    });
+                },
+                notes =>
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        SharedNotes = notes;
                     });
                 },
                 () =>

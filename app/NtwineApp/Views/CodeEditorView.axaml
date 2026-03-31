@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             x:Class="NtwineApp.Views.CodeEditorView">
+
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="#1a1425" Padding="12,8" BorderBrush="#2a2238" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                    <Border CornerRadius="4" Padding="6,2" Background="#1e1730">
+                        <TextBlock Text="{Binding CurrentLanguage, FallbackValue='go'}" FontSize="10" Foreground="#7a6f96" />
+                    </Border>
+                    <Border CornerRadius="4" Padding="6,2" Background="#1e1730">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Ln" FontSize="10" Foreground="#585070" />
+                            <TextBlock Text="{Binding CurrentLine, FallbackValue='1'}" FontSize="10" Foreground="#b0a4c8" />
+                            <TextBlock Text="Col" FontSize="10" Foreground="#585070" />
+                            <TextBlock Text="{Binding CurrentColumn, FallbackValue='1'}" FontSize="10" Foreground="#b0a4c8" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <TextBlock Text="{Binding CurrentFile, FallbackValue='no file open'}"
+                           FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center"
+                           FontFamily="JetBrains Mono,monospace" />
+            </DockPanel>
+        </Border>
+
+        <ae:TextEditor
+            Name="Editor"
+            Background="#110d18"
+            Foreground="#e8e0f4"
+            FontFamily="JetBrains Mono,Menlo,monospace"
+            FontSize="13"
+            ShowLineNumbers="True"
+            IsReadOnly="True"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Auto"
+            Padding="8,4" />
+    </DockPanel>
+</UserControl>

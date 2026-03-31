@@ -21,6 +21,7 @@ public class BackendService
         List<string> models,
         int rounds,
         Action<ChatMessage> onMessage,
+        Action<string> onNotesUpdate,
         Action onComplete)
     {
         _cts = new CancellationTokenSource();
@@ -50,7 +51,7 @@ public class BackendService
                     break;
 
                 var text = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                ProcessEvent(text, onMessage);
+                ProcessEvent(text, onMessage, onNotesUpdate);
             }
         }
         catch (OperationCanceledException) { }
@@ -103,7 +104,7 @@ public class BackendService
         await _ws.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
-    private void ProcessEvent(string json, Action<ChatMessage> onMessage)
+    private void ProcessEvent(string json, Action<ChatMessage> onMessage, Action<string> onNotesUpdate)
     {
         try
         {
@@ -147,6 +148,8 @@ public class BackendService
                     break;
 
                 case "notes_update":
+                    var notes = root.GetProperty("content").GetString() ?? "";
+                    onNotesUpdate(notes);
                     onMessage(new ChatMessage("spec", "#8b7cf8",
                         "[shared spec updated]", DateTime.Now));
                     break;

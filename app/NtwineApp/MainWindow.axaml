@@ -81,6 +81,9 @@
                                 <TextBlock Text="tools" FontSize="12" Classes="muted" />
                             </StackPanel>
                         </Border>
+                        <Border Background="#1e1730" CornerRadius="6" Padding="8,4" Cursor="Hand">
+                            <TextBlock Text="{Binding StatusText, FallbackValue='ready'}" FontSize="11" Foreground="#7a6f96" />
+                        </Border>
                     </StackPanel>
 
                     <TextBlock DockPanel.Dock="Left" Text="{Binding CurrentDiscussionTitle, FallbackValue='New Discussion'}"
