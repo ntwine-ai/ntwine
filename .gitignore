@@ -7,3 +7,6 @@ dist/
 *.exe
 config.json
 ~/.socratic-slopinar/
+
+app/NtwineApp/bin/
+app/NtwineApp/obj/
