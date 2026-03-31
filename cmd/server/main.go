@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 
@@ -33,6 +35,31 @@ func main() {
 	var pins []string
 	harness.RegisterBuiltins(registry, ".", &notes, &pins, cfg.TavilyKey)
 
+	tracker := harness.NewReadTracker()
+	harness.RegisterEditTools(registry, ".", tracker)
+	harness.RegisterShellTool(registry, ".", 30*1000000000)
+	harness.RegisterThinkTool(registry)
+
+	memStore := harness.NewMemoryStore(".")
+	harness.RegisterMemoryTool(registry, memStore)
+
+	harness.RegisterSkillTool(registry, ".ntwine/skills", homeSkillDir())
+
+	mcpHub := harness.NewMCPHub(registry)
+	mcpConfigPath := harness.FindMCPConfig(".")
+	if mcpConfigPath != "" {
+		mcpConfigs, err := harness.LoadMCPConfig(mcpConfigPath)
+		if err != nil {
+			log.Printf("warning: failed to load MCP config: %v", err)
+		} else {
+			for _, mcpCfg := range mcpConfigs {
+				if err := mcpHub.Connect(context.Background(), mcpCfg); err != nil {
+					log.Printf("warning: failed to connect MCP server %s: %v", mcpCfg.Name, err)
+				}
+			}
+		}
+	}
+
 	log.Printf("harness ready: %d tools registered", registry.Count())
 
 	var frontend http.Handler
@@ -55,6 +82,14 @@ func main() {
 	if err := http.ListenAndServe(addr, router); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
+}
+
+func homeSkillDir() string {
+	u, err := user.Current()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(u.HomeDir, ".ntwine", "skills")
 }
 
 func openBrowser(url string) {
