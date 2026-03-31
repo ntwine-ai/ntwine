@@ -144,6 +144,10 @@ func searchCodeHandler(codebasePath string) ToolHandlerFunc {
 		if err := json.Unmarshal(raw, &args); err != nil {
 			return ToolResult{}, err
 		}
+		if len(args.Query) > 500 {
+			return ToolResult{Output: "search query too long (max 500 chars)", IsError: true}, nil
+		}
+
 		searchDir := codebasePath
 		if args.Path != "" {
 			p, err := validatePath(codebasePath, args.Path)
@@ -152,7 +156,7 @@ func searchCodeHandler(codebasePath string) ToolHandlerFunc {
 			}
 			searchDir = p
 		}
-		cmd := exec.CommandContext(ctx, "grep", "-rn", "--include=*", "-m", "50", args.Query, searchDir)
+		cmd := exec.CommandContext(ctx, "grep", "-rn", "--include=*", "-m", "50", "-E", args.Query, searchDir)
 		out, err := cmd.Output()
 		if err != nil {
 			if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
@@ -322,12 +326,23 @@ func validatePath(codebasePath, requestedPath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid codebase path")
 	}
-	if strings.HasPrefix(requestedPath, cbAbs) {
+
+	if filepath.IsAbs(requestedPath) {
+		if !strings.HasPrefix(requestedPath, cbAbs) {
+			return "", fmt.Errorf("absolute paths outside the codebase are not allowed")
+		}
 		requestedPath = strings.TrimPrefix(requestedPath, cbAbs)
 		requestedPath = strings.TrimPrefix(requestedPath, "/")
-	} else if filepath.IsAbs(requestedPath) {
-		requestedPath = strings.TrimPrefix(requestedPath, "/")
 	}
+
+	if strings.Contains(requestedPath, "..") {
+		cleaned := filepath.Clean(requestedPath)
+		if strings.HasPrefix(cleaned, "..") {
+			return "", fmt.Errorf("path escapes codebase root")
+		}
+		requestedPath = cleaned
+	}
+
 	abs, err := filepath.Abs(filepath.Join(codebasePath, requestedPath))
 	if err != nil {
 		return "", fmt.Errorf("invalid path")

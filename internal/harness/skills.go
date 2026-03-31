@@ -109,7 +109,7 @@ func RegisterSkillTool(r *Registry, skillDirs ...string) {
 	r.Register(ToolDef{
 		Name:             "use_skill",
 		Description:      fmt.Sprintf("load a skill for specialized guidance. available: %s", strings.Join(names, ", ")),
-		ModelDescription: "load a skill into context for specialized instructions",
+		ModelDescription: fmt.Sprintf("load a skill for specialized guidance. available: %s", strings.Join(names, ", ")),
 		Source:           "builtin",
 		ReadOnly:         true,
 		Parameters: params(

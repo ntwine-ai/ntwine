@@ -285,7 +285,7 @@ func makeDiscussHandler(registry *harness.Registry) http.HandlerFunc {
 
 func handleDiscuss(w http.ResponseWriter, r *http.Request, registry *harness.Registry) {
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		OriginPatterns: []string{"*"},
+		OriginPatterns: []string{"localhost:*", "127.0.0.1:*"},
 	})
 	if err != nil {
 		http.Error(w, "websocket accept failed", http.StatusInternalServerError)

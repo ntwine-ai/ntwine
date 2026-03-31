@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -98,31 +99,25 @@ func shellHandler(codebasePath string, timeout time.Duration) ToolHandlerFunc {
 }
 
 func sanitizeEnv() []string {
-	blocked := map[string]bool{
-		"AWS_SECRET_ACCESS_KEY": true,
-		"AWS_SESSION_TOKEN":    true,
-		"GITHUB_TOKEN":         true,
-		"GH_TOKEN":             true,
-		"OPENAI_API_KEY":       true,
-		"ANTHROPIC_API_KEY":    true,
-		"DATABASE_URL":         true,
-		"DB_PASSWORD":          true,
-		"PRIVATE_KEY":          true,
-		"SECRET_KEY":           true,
+	allowed := map[string]bool{
+		"PATH": true, "HOME": true, "USER": true, "SHELL": true,
+		"TMPDIR": true, "TEMP": true, "TMP": true,
+		"LANG": true, "LC_ALL": true, "LC_CTYPE": true,
+		"GOPATH": true, "GOROOT": true, "GOBIN": true,
+		"NODE_PATH": true, "NVM_DIR": true,
+		"RUST_BACKTRACE": true, "CARGO_HOME": true,
+		"PYTHON_PATH": true, "VIRTUAL_ENV": true,
+		"TERM": true, "COLORTERM": true,
+		"XDG_DATA_HOME": true, "XDG_CONFIG_HOME": true, "XDG_CACHE_HOME": true,
+		"EDITOR": true, "VISUAL": true,
 	}
 
 	var env []string
-	for _, e := range strings.Split("", "=") {
-		_ = e
-	}
-
-	current := exec.Command("env").Environ()
-	for _, e := range current {
+	for _, e := range os.Environ() {
 		parts := strings.SplitN(e, "=", 2)
-		if len(parts) == 2 && blocked[parts[0]] {
-			continue
+		if len(parts) == 2 && allowed[parts[0]] {
+			env = append(env, e)
 		}
-		env = append(env, e)
 	}
 	return env
 }
