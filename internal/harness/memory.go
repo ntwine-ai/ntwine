@@ -40,23 +40,19 @@ func (ms *MemoryStore) Save(key, value, createdBy string) error {
 		return err
 	}
 
-	safe := strings.Map(func(r rune) rune {
-		if r == '/' || r == '\\' || r == ':' || r == '*' || r == '?' || r == '"' || r == '<' || r == '>' || r == '|' {
-			return '_'
-		}
-		return r
-	}, key)
+	safe, err := sanitizeKey(key)
+	if err != nil {
+		return err
+	}
 
 	return os.WriteFile(filepath.Join(ms.dirPath, safe+".json"), data, 0644)
 }
 
 func (ms *MemoryStore) Load(key string) (Memory, bool) {
-	safe := strings.Map(func(r rune) rune {
-		if r == '/' || r == '\\' || r == ':' || r == '*' || r == '?' || r == '"' || r == '<' || r == '>' || r == '|' {
-			return '_'
-		}
-		return r
-	}, key)
+	safe, err := sanitizeKey(key)
+	if err != nil {
+		return Memory{}, false
+	}
 
 	data, err := os.ReadFile(filepath.Join(ms.dirPath, safe+".json"))
 	if err != nil {

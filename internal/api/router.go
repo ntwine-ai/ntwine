@@ -291,6 +291,7 @@ func handleDiscuss(w http.ResponseWriter, r *http.Request, registry *harness.Reg
 		http.Error(w, "websocket accept failed", http.StatusInternalServerError)
 		return
 	}
+	conn.SetReadLimit(64 * 1024)
 	defer conn.CloseNow()
 	conn.SetReadLimit(1024 * 1024)
 

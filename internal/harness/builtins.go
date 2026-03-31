@@ -178,8 +178,13 @@ func updateNotesHandler(notes *string) ToolHandlerFunc {
 		if err := json.Unmarshal(raw, &args); err != nil {
 			return ToolResult{}, err
 		}
+		const maxNotesSize = 50000
+
 		switch args.Action {
 		case "append":
+			if len(*notes)+len(args.Content) > maxNotesSize {
+				return ToolResult{Output: "notes too large (max 50KB). use replace_section to trim.", IsError: true}, nil
+			}
 			if strings.TrimSpace(*notes) == "" {
 				*notes = args.Content
 			} else {
@@ -214,6 +219,9 @@ func pinMessageHandler(pins *[]string) ToolHandlerFunc {
 		}
 		if args.Message == "" {
 			return ToolResult{}, fmt.Errorf("message is required")
+		}
+		if len(*pins) >= 50 {
+			return ToolResult{Output: "max 50 pins reached", IsError: true}, nil
 		}
 		*pins = append(*pins, args.Message)
 		return ToolResult{Output: "message pinned"}, nil

@@ -3,6 +3,7 @@ package harness
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -235,4 +236,35 @@ func TestMemoryTool_CreateMemory_EmptyValue(t *testing.T) {
 	_, err := r.Execute(context.Background(), "create_memory", `{"key":"k","value":""}`)
 	_ = err
 	// should not panic
+}
+
+func TestMemoryStore_All_SkipsCorruptJSON(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	store := NewMemoryStore(dir)
+	store.Save("valid", "value", "agent")
+
+	// write corrupt JSON directly into the memories dir
+	corruptPath := store.dirPath + "/corrupt.json"
+	os.WriteFile(corruptPath, []byte("not valid json {{{"), 0644)
+
+	memories := store.All()
+	// should have 1 valid memory, corrupt one silently skipped
+	if len(memories) != 1 {
+		t.Errorf("expected 1 valid memory (corrupt skipped), got %d", len(memories))
+	}
+}
+
+func TestMemoryStore_Load_CorruptJSON_ReturnsFalse(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	store := NewMemoryStore(dir)
+	os.WriteFile(store.dirPath+"/badkey.json", []byte("not json"), 0644)
+
+	_, found := store.Load("badkey")
+	if found {
+		t.Error("corrupt JSON should result in found=false")
+	}
 }

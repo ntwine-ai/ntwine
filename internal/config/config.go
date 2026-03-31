@@ -15,7 +15,7 @@ type Config struct {
 
 func configDir() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".socratic-slopinar")
+	return filepath.Join(home, ".ntwine")
 }
 
 func configPath() string {

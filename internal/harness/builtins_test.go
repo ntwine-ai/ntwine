@@ -57,6 +57,17 @@ func TestReadFileHandler_LargeFile_Truncated(t *testing.T) {
 	}
 }
 
+func TestReadFileHandler_InvalidJSON_ReturnsError(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	handler := readFileHandler(dir)
+	_, err := handler(context.Background(), json.RawMessage(`not json`))
+	if err == nil {
+		t.Error("expected error for invalid JSON args")
+	}
+}
+
 func TestReadFileHandler_PathTraversal_Blocked(t *testing.T) {
 	dir, cleanup := setupCodebase(t)
 	defer cleanup()
@@ -108,6 +119,17 @@ func TestListFilesHandler_NoPattern_ListsAll(t *testing.T) {
 	result, _ := handler(context.Background(), raw)
 	if !strings.Contains(result.Output, "file1.txt") || !strings.Contains(result.Output, "file2.md") {
 		t.Errorf("expected both files with no pattern, got: %s", result.Output)
+	}
+}
+
+func TestListFilesHandler_InvalidJSON_ReturnsError(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	handler := listFilesHandler(dir)
+	_, err := handler(context.Background(), json.RawMessage(`{bad}`))
+	if err == nil {
+		t.Error("expected error for invalid JSON")
 	}
 }
 
@@ -165,6 +187,25 @@ func TestSearchCodeHandler_NoMatch_ReturnsNoMatches(t *testing.T) {
 	result, _ := handler(context.Background(), raw)
 	if result.Output != "no matches found" {
 		t.Errorf("expected 'no matches found', got: %q", result.Output)
+	}
+}
+
+func TestSearchCodeHandler_QueryTooLong(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	handler := searchCodeHandler(dir)
+	longQuery := strings.Repeat("a", 501)
+	raw, _ := json.Marshal(map[string]string{"query": longQuery})
+	result, err := handler(context.Background(), raw)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !result.IsError {
+		t.Error("expected IsError=true for query > 500 chars")
+	}
+	if !strings.Contains(result.Output, "too long") {
+		t.Errorf("expected 'too long' message, got: %s", result.Output)
 	}
 }
 
@@ -351,6 +392,15 @@ func TestPinMessageHandler_MultiplePins(t *testing.T) {
 	}
 }
 
+func TestPinMessageHandler_InvalidJSON_ReturnsError(t *testing.T) {
+	pins := []string{}
+	handler := pinMessageHandler(&pins)
+	_, err := handler(context.Background(), json.RawMessage(`not json`))
+	if err == nil {
+		t.Error("expected error for invalid JSON")
+	}
+}
+
 func TestPinMessageHandler_EmptyMessage_Errors(t *testing.T) {
 	pins := []string{}
 	handler := pinMessageHandler(&pins)
@@ -395,6 +445,44 @@ func TestValidatePath_AbsoluteOutsideRoot_Blocked(t *testing.T) {
 	if err == nil {
 		// absolute path outside codebase should be blocked
 		t.Error("expected error for absolute path outside codebase")
+	}
+}
+
+func TestValidatePath_AbsoluteInsideRoot_Allowed(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	absPath := dir + "/subdir/file.go"
+	result, err := validatePath(dir, absPath)
+	if err != nil {
+		t.Fatalf("absolute path inside root should be allowed: %v", err)
+	}
+	if result != absPath {
+		t.Errorf("expected %q, got %q", absPath, result)
+	}
+}
+
+func TestValidatePath_DotDotInMiddle_CleanedCorrectly(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	// subdir/../file.go should resolve to dir/file.go (within bounds)
+	result, err := validatePath(dir, "subdir/../file.go")
+	if err != nil {
+		t.Fatalf("path with .. that stays in bounds should be allowed: %v", err)
+	}
+	if result != dir+"/file.go" {
+		t.Errorf("expected cleaned path, got %q", result)
+	}
+}
+
+func TestValidatePath_DotDotEscapes_Blocked(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	_, err := validatePath(dir, "../outside")
+	if err == nil {
+		t.Error("expected error for path escaping with ..")
 	}
 }
 
@@ -466,6 +554,29 @@ func TestRemoveSection_RemovesHeadingToo(t *testing.T) {
 	result := removeSection(doc, "Remove")
 	if strings.Contains(result, "## Remove") {
 		t.Errorf("heading should also be removed, got: %q", result)
+	}
+}
+
+func TestRemoveSection_WithHashInHeading(t *testing.T) {
+	// test when heading already has ## prefix
+	doc := "## Foo\nfoo content\n\n## Bar\nbar content\n"
+	result := removeSection(doc, "## Foo")
+	if strings.Contains(result, "foo content") {
+		t.Errorf("expected foo section removed, got: %q", result)
+	}
+	if !strings.Contains(result, "bar content") {
+		t.Errorf("expected bar section preserved, got: %q", result)
+	}
+}
+
+func TestRemoveSection_StopsAtSameLevelHeading(t *testing.T) {
+	doc := "## Section1\ncontent1\n## Section2\ncontent2\n## Section3\ncontent3\n"
+	result := removeSection(doc, "Section2")
+	if strings.Contains(result, "content2") {
+		t.Errorf("section2 content should be removed, got: %q", result)
+	}
+	if !strings.Contains(result, "content1") || !strings.Contains(result, "content3") {
+		t.Errorf("sections 1 and 3 should remain, got: %q", result)
 	}
 }
 

@@ -781,7 +781,12 @@ func sanitizeMessages(msgs []openrouter.ChatMessage) []openrouter.ChatMessage {
 }
 
 func withNotesContext(messages []openrouter.ChatMessage, notes string, ctxMgr *harness.ContextManager) []openrouter.ChatMessage {
-	masked := ctxMgr.MaskOldObservations(messages)
+	var masked []openrouter.ChatMessage
+	if ctxMgr != nil {
+		masked = ctxMgr.MaskOldObservations(messages)
+	} else {
+		masked = messages
+	}
 
 	trimmed := masked
 	wasCompacted := false
