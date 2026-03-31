@@ -321,50 +321,133 @@
 
             <!-- settings view -->
             <ScrollViewer IsVisible="{Binding IsSettingsOpen}" Padding="40,50,40,20" Background="#110d18">
-                <StackPanel MaxWidth="500" Spacing="20">
+                <StackPanel MaxWidth="520" Spacing="24">
+
+                    <!-- header -->
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Classes="ghost" Content="Close" Command="{Binding ToggleSettingsCommand}" />
                         <TextBlock Text="Settings" FontSize="22" FontWeight="Bold" Foreground="#e8e0f4" />
                     </DockPanel>
 
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="OPENROUTER API KEY" Classes="muted" FontSize="10" FontWeight="SemiBold" />
-                        <TextBox PasswordChar="*" Text="{Binding OpenRouterKey}" Watermark="sk-or-..."
-                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="10,8" FontSize="13" Foreground="#e8e0f4" />
-                        <TextBlock Text="get one at openrouter.ai/keys" FontSize="10" Foreground="#585070" />
-                    </StackPanel>
-
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="TAVILY KEY (web search)" Classes="muted" FontSize="10" FontWeight="SemiBold" />
-                        <TextBox PasswordChar="*" Text="{Binding TavilyKey}" Watermark="tvly-..."
-                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="10,8" FontSize="13" Foreground="#e8e0f4" />
+                    <!-- account -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="ACCOUNT" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                        <Border Background="#1a1425" CornerRadius="10" Padding="14,10">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Classes="ghost" Content="Login" FontSize="12" />
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="not signed in" FontSize="13" Foreground="#b0a4c8" />
+                                    <TextBlock Text="sign in for cloud sync and credit billing" FontSize="11" Foreground="#585070" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
                     </StackPanel>
 
                     <Separator Background="#1e1730" Height="1" />
 
-                    <TextBlock Text="BRING YOUR OWN KEYS" Classes="muted" FontSize="10" FontWeight="SemiBold" />
-                    <TextBlock Text="paste your own API keys to use your billing. free, unlimited." FontSize="12" Foreground="#7a6f96" />
+                    <!-- theme -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="APPEARANCE" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border CornerRadius="8" Background="#1e1730" Padding="14,8" Cursor="Hand"
+                                    BorderBrush="#8b7cf8" BorderThickness="1">
+                                <TextBlock Text="Dark" FontSize="12" Foreground="#e8e0f4" />
+                            </Border>
+                            <Border CornerRadius="8" Background="#1a1425" Padding="14,8" Cursor="Hand"
+                                    BorderBrush="#2a2238" BorderThickness="1">
+                                <TextBlock Text="Light" FontSize="12" Foreground="#7a6f96" />
+                            </Border>
+                            <Border CornerRadius="8" Background="#1a1425" Padding="14,8" Cursor="Hand"
+                                    BorderBrush="#2a2238" BorderThickness="1">
+                                <TextBlock Text="System" FontSize="12" Foreground="#7a6f96" />
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
 
-                    <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,4,0,0">
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Anthropic" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="0" Grid.Column="1" PasswordChar="*" Text="{Binding AnthropicKey}" Watermark="sk-ant-..."
-                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" Margin="0,2" />
+                    <Separator Background="#1e1730" Height="1" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="OpenAI" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="1" Grid.Column="1" PasswordChar="*" Text="{Binding OpenAIKey}" Watermark="sk-..."
-                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" Margin="0,2" />
+                    <!-- BYOK -->
+                    <StackPanel Spacing="10">
+                        <DockPanel>
+                            <ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding ByokEnabled}"
+                                          OnContent="" OffContent="" Margin="0,0,0,0" />
+                            <StackPanel>
+                                <TextBlock Text="BRING YOUR OWN KEYS" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                                <TextBlock Text="optional. your keys, your bill. unlimited everything." FontSize="11" Foreground="#585070" />
+                            </StackPanel>
+                        </DockPanel>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Google" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="2" Grid.Column="1" PasswordChar="*" Text="{Binding GoogleKey}" Watermark="AIza..."
-                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" Margin="0,2" />
+                        <StackPanel Spacing="6" IsVisible="{Binding ByokEnabled}">
+                            <!-- api key rows -->
+                            <ItemsControl ItemsSource="{Binding ApiKeys}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#1a1425" CornerRadius="8" Padding="4" Margin="0,2">
+                                            <Grid ColumnDefinitions="120,*,Auto">
+                                                <Border Grid.Column="0" Background="#151020" CornerRadius="6" Padding="8,7" Margin="0,0,4,0">
+                                                    <TextBlock Text="{Binding Provider}" FontSize="12" Foreground="#b0a4c8" />
+                                                </Border>
+                                                <TextBox Grid.Column="1" Text="{Binding Key}" Watermark="{Binding Placeholder}"
+                                                         PasswordChar="*" Background="Transparent" BorderThickness="0"
+                                                         FontSize="12" Foreground="#e8e0f4" Padding="8,7" />
+                                                <Button Grid.Column="2" Background="Transparent" BorderThickness="0"
+                                                        Padding="6" Cursor="Hand" VerticalAlignment="Center"
+                                                        Tag="{Binding Provider}" Click="OnRemoveKeyClick">
+                                                    <TextBlock Text="x" FontSize="10" Foreground="#585070" />
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="DeepSeek" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="3" Grid.Column="1" PasswordChar="*" Text="{Binding DeepSeekKey}" Watermark="sk-..."
-                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" Margin="0,2" />
-                    </Grid>
+                            <!-- add key button -->
+                            <DockPanel Margin="0,4,0,0">
+                                <Button DockPanel.Dock="Right" Classes="ghost" Content="+ Add" FontSize="11"
+                                        Command="{Binding AddApiKeyCommand}" />
+                                <ComboBox ItemsSource="{Binding AvailableProviders}" SelectedItem="{Binding NewKeyProvider}"
+                                          Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8"
+                                          FontSize="12" Foreground="#b0a4c8" Padding="8,5" Width="160" />
+                            </DockPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Separator Background="#1e1730" Height="1" />
+
+                    <!-- backend -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="BACKEND" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                        <Border Background="#1a1425" CornerRadius="8" Padding="12,8">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                    <Border Width="6" Height="6" CornerRadius="3" Background="#10b981"
+                                            IsVisible="{Binding BackendConnected}" />
+                                    <Border Width="6" Height="6" CornerRadius="3" Background="#ef4444"
+                                            IsVisible="{Binding !BackendConnected}" />
+                                    <TextBlock Text="connected" FontSize="11" Foreground="#10b981"
+                                               IsVisible="{Binding BackendConnected}" />
+                                    <TextBlock Text="offline" FontSize="11" Foreground="#ef4444"
+                                               IsVisible="{Binding !BackendConnected}" />
+                                </StackPanel>
+                                <StackPanel Spacing="1">
+                                    <TextBlock Text="localhost:8090" FontSize="12" Foreground="#b0a4c8" />
+                                    <TextBlock Text="{Binding ToolCount, StringFormat='{}{0} tools registered'}" FontSize="10" Foreground="#585070" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <Separator Background="#1e1730" Height="1" />
+
+                    <!-- danger zone -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="DATA" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                        <Button Classes="ghost" Content="Clear all threads" HorizontalAlignment="Left" FontSize="12" />
+                        <Button Classes="ghost" Content="Reset settings" HorizontalAlignment="Left" FontSize="12" />
+                    </StackPanel>
 
                     <Button Classes="primary" Content="Save" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                            Command="{Binding SaveSettingsCommand}" />
+                            Command="{Binding SaveSettingsCommand}" Margin="0,8,0,20" />
                 </StackPanel>
             </ScrollViewer>
 

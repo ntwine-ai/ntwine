@@ -55,6 +55,15 @@ public partial class MainWindow : Window
         };
     }
 
+    private void OnRemoveKeyClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string provider && _vm != null)
+        {
+            var key = _vm.ApiKeys.FirstOrDefault(k => k.Provider == provider);
+            if (key != null) _vm.ApiKeys.Remove(key);
+        }
+    }
+
     private void OnRemoveModelClick(object? sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is string modelId && _vm != null)

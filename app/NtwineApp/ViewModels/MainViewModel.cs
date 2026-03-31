@@ -38,12 +38,23 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _showFreeOnly = false;
     [ObservableProperty] private bool _isLoadingModels = false;
 
+    [ObservableProperty] private bool _byokEnabled = false;
+    [ObservableProperty] private string _newKeyProvider = "OpenRouter";
+
+    // kept for backward compat with settings loading
     [ObservableProperty] private string _openRouterKey = "";
     [ObservableProperty] private string _tavilyKey = "";
     [ObservableProperty] private string _anthropicKey = "";
     [ObservableProperty] private string _openAIKey = "";
     [ObservableProperty] private string _googleKey = "";
     [ObservableProperty] private string _deepSeekKey = "";
+
+    public ObservableCollection<ApiKeyEntry> ApiKeys { get; } = new();
+    public ObservableCollection<string> AvailableProviders { get; } = new()
+    {
+        "OpenRouter", "Anthropic", "OpenAI", "Google", "DeepSeek",
+        "Mistral", "Cohere", "xAI", "Together", "Fireworks", "Groq"
+    };
 
     public ObservableCollection<ChatMessage> Messages { get; }
 
@@ -232,6 +243,27 @@ public partial class MainViewModel : ObservableObject
     {
         HasNotes = !string.IsNullOrWhiteSpace(value);
     }
+
+    [RelayCommand]
+    private void AddApiKey()
+    {
+        if (string.IsNullOrEmpty(NewKeyProvider)) return;
+        if (ApiKeys.Any(k => k.Provider == NewKeyProvider)) return;
+
+        ApiKeys.Add(new ApiKeyEntry(NewKeyProvider, "", GetPlaceholder(NewKeyProvider)));
+    }
+
+    private static string GetPlaceholder(string provider) => provider switch
+    {
+        "OpenRouter" => "sk-or-...",
+        "Anthropic" => "sk-ant-...",
+        "OpenAI" => "sk-...",
+        "Google" => "AIza...",
+        "DeepSeek" => "sk-...",
+        "Mistral" => "...",
+        "xAI" => "xai-...",
+        _ => "..."
+    };
 
     [RelayCommand]
     private void ToggleSettings()
@@ -490,6 +522,26 @@ public class ThreadItem
 {
     public string Title { get; }
     public ThreadItem(string title) => Title = title;
+}
+
+public class ApiKeyEntry : ObservableObject
+{
+    public string Provider { get; }
+    public string Placeholder { get; }
+
+    private string _key;
+    public string Key
+    {
+        get => _key;
+        set => SetProperty(ref _key, value);
+    }
+
+    public ApiKeyEntry(string provider, string key, string placeholder)
+    {
+        Provider = provider;
+        _key = key;
+        Placeholder = placeholder;
+    }
 }
 
 public class PickerModel
