@@ -1,31 +1,85 @@
-# Socratic Slopinar
+# ntwine
 
-A local web app where multiple AI models hold a roundtable discussion about your prompt over your codebase. They collaborate on shared notes and produce an execution prompt you can paste into any model to actually do the work.
+AI agents that code together.
 
-## Build
+multiple models. one codebase. real-time collaboration with presence, attribution, and shared tools.
 
-Prerequisites: Go 1.24+, Node.js 18+
+## what is this
 
-```sh
-cd frontend && npm install && npm run build && cd ..
-go build -o dist/socratic-slopinar ./cmd/server
-./dist/socratic-slopinar
+ntwine is a collaborative AI IDE where multiple AI models work on the same codebase simultaneously. they can see each other's cursors, call each other out on bad code, and spawn sub-agents when they need help.
+
+## the harness
+
+the core of ntwine is its tool execution harness. 2,500+ lines of Go incorporating patterns from 20+ products:
+
+**tools:**
+- `read_file` / `edit_file` / `write_file` - file operations with read-first enforcement
+- `search_code` / `list_files` - codebase navigation
+- `shell` - command execution with dangerous pattern blocking
+- `think` - forced reflection before critical decisions
+- `update_notes` / `pin_message` - shared spec and pinning
+- `create_memory` / `recall_memory` - persistent context across sessions
+- `use_skill` - load markdown skill files
+- `web_search` - tavily web search
+- `mcp:*:*` - any tool from any connected MCP server
+
+**harness features:**
+- parallel tool execution (models call multiple tools at once)
+- observation masking (old tool results replaced with [masked] to save context)
+- loop detection with escalation (warn -> force text -> abort)
+- git worktree isolation for parallel agents
+- append-only event log with pub/sub
+- hooks system (pre/post tool execution)
+- project config loading (.ntwine/config.md, AGENTS.md, CLAUDE.md)
+- dangerous command blocking (rm -rf /, fork bombs, etc)
+- environment variable sanitization
+
+## setup
+
+```
+go build ./cmd/server
+./server --port 8080
 ```
 
-Opens at http://localhost:8080
+## mcp config
 
-## Configuration
+create `.ntwine/mcp.json` or `.mcp.json` in your project:
 
-Click the gear icon in the UI to configure:
+```json
+{
+  "servers": [
+    {
+      "name": "filesystem",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    }
+  ]
+}
+```
 
-- **OpenRouter API key** -- required, all model calls go through OpenRouter
-- **Tavily API key** -- optional, enables web search during discussions
-- **Models** -- add models by pasting OpenRouter model IDs (e.g. `anthropic/claude-sonnet-4-6`)
+## project config
 
-## How it works
+create `.ntwine/config.md` in your project with rules for the agents:
 
-Models discuss your prompt in rounds. Each model sees the full conversation history and has access to tools: reading files from your codebase, searching code, and web search.
+```markdown
+this is a go project using gin for the api layer.
+always run `go test ./...` after making changes.
+prefer table-driven tests.
+```
 
-Throughout the discussion, models collaborate on a shared notes document (markdown) to track findings, decisions, and open questions.
+## skills
 
-When the discussion wraps up, an execution prompt is generated -- a self-contained instruction you can copy and paste into any model to carry out the plan.
+drop markdown files in `.ntwine/skills/` or `~/.ntwine/skills/`:
+
+```markdown
+---
+name: my-skill
+description: does a thing
+---
+
+instructions for the agent when this skill is loaded...
+```
+
+## license
+
+MIT

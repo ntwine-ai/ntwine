@@ -157,6 +157,30 @@ func main() {
 	var pinnedSlice []string
 	harness.RegisterBuiltins(registry, *codebase, &notes, &pinnedSlice, cfg.TavilyKey)
 
+	tracker := harness.NewReadTracker()
+	harness.RegisterEditTools(registry, *codebase, tracker)
+	harness.RegisterShellTool(registry, *codebase, 30*1000000000)
+	harness.RegisterThinkTool(registry)
+
+	memStore := harness.NewMemoryStore(*codebase)
+	harness.RegisterMemoryTool(registry, memStore)
+
+	mcpHub := harness.NewMCPHub(registry)
+	mcpConfigPath := harness.FindMCPConfig(*codebase)
+	if mcpConfigPath != "" {
+		mcpConfigs, loadErr := harness.LoadMCPConfig(mcpConfigPath)
+		if loadErr != nil {
+			log.Printf("warning: MCP config error: %v", loadErr)
+		} else {
+			for _, mcpCfg := range mcpConfigs {
+				if connErr := mcpHub.Connect(ctx, mcpCfg); connErr != nil {
+					log.Printf("warning: MCP %s: %v", mcpCfg.Name, connErr)
+				}
+			}
+		}
+	}
+	_ = mcpHub
+
 	discID := fmt.Sprintf("cli_%d", os.Getpid())
 	disc := orchestrator.NewDiscussion(discID, *prompt, *codebase, cfg.Models, *rounds)
 	result := orchestrator.Run(ctx, disc, client, registry, broadcast, mutes, pins, injector)

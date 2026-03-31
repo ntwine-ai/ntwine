@@ -146,7 +146,13 @@ func systemPrompt(prompt, codebasePath string, thisModel string, allModels []str
 		})
 	}
 
+	projectRules := harness.LoadProjectConfig(codebasePath)
+
 	base := harness.BuildSystemPrompt(agent, teammates, codebasePath, "")
+
+	if projectRules != "" {
+		base += "\nproject rules:\n" + projectRules + "\n\n"
+	}
 
 	return base + "\ntask: " + prompt + "\n\n" +
 		"banned phrases (using these = instant cringe):\n" +
@@ -442,6 +448,7 @@ func Run(ctx context.Context, disc Discussion, client *openrouter.Client, regist
 
 	ctxMgr := harness.NewContextManager(25, 15)
 	loopDet := harness.NewLoopDetector()
+	registry.SetLoopDetector(loopDet)
 
 	registry.OnEvent(func(evt harness.ToolEvent) {
 		switch evt.Type {
@@ -449,11 +456,12 @@ func Run(ctx context.Context, disc Discussion, client *openrouter.Client, regist
 			broadcast(Event{Type: "status", ModelID: "", Content: fmt.Sprintf("running %s", evt.ToolName)})
 		case harness.EventToolError:
 			log.Printf("[HARNESS] tool error: %s: %s", evt.ToolName, evt.Content)
+		case harness.EventToolProgress:
+			log.Printf("[HARNESS] %s: %s", evt.ToolName, evt.Content)
 		}
 	})
 
 	_ = ctxMgr
-	_ = loopDet
 
 	agreementCount := 0
 

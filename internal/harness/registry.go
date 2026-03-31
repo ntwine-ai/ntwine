@@ -74,6 +74,7 @@ type Registry struct {
 	permissions  PermissionFunc
 	denyRules    []DenyRule
 	events       EventCallback
+	loopDetector *LoopDetector
 }
 
 type DenyRule struct {
@@ -139,6 +140,12 @@ func (r *Registry) OnEvent(cb EventCallback) {
 	r.events = cb
 }
 
+func (r *Registry) SetLoopDetector(ld *LoopDetector) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.loopDetector = ld
+}
+
 func (r *Registry) emit(evt ToolEvent) {
 	r.mu.RLock()
 	cb := r.events
@@ -152,6 +159,7 @@ func (r *Registry) Execute(ctx context.Context, name string, argsJSON string) (T
 	r.mu.RLock()
 	tool, ok := r.tools[name]
 	permFn := r.permissions
+	loopDet := r.loopDetector
 	r.mu.RUnlock()
 
 	if !ok {
@@ -171,6 +179,28 @@ func (r *Registry) Execute(ctx context.Context, name string, argsJSON string) (T
 		}
 	}
 
+	if loopDet != nil {
+		action := loopDet.Record(name, argsJSON)
+		switch action {
+		case LoopAbort:
+			return ToolResult{
+				Output:  "tool loop detected. you've called this with the same args too many times. try a completely different approach.",
+				IsError: true,
+			}, nil
+		case LoopForceText:
+			return ToolResult{
+				Output:  "you're repeating yourself. stop calling tools and explain what you're trying to do instead.",
+				IsError: true,
+			}, nil
+		case LoopWarn:
+			r.emit(ToolEvent{
+				Type:     EventToolProgress,
+				ToolName: name,
+				Content:  "possible loop detected, same tool+args called multiple times",
+			})
+		}
+	}
+
 	var raw json.RawMessage
 	if argsJSON == "" || argsJSON == "{}" {
 		raw = json.RawMessage("{}")
@@ -178,13 +208,15 @@ func (r *Registry) Execute(ctx context.Context, name string, argsJSON string) (T
 		raw = json.RawMessage(argsJSON)
 	}
 
+	toolCtx := ContextWithToolName(ctx, name)
+
 	r.emit(ToolEvent{
 		Type:     EventToolStart,
 		ToolName: name,
 		Title:    tool.def.Description,
 	})
 
-	result, err := tool.handler(ctx, raw)
+	result, err := tool.handler(toolCtx, raw)
 
 	if err != nil {
 		r.emit(ToolEvent{

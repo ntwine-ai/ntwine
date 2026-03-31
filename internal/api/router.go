@@ -32,6 +32,18 @@ func NewRouter(frontend http.Handler, registry *harness.Registry) http.Handler {
 	mux.HandleFunc("DELETE /api/history/{id}", handleDeleteHistory)
 	mux.HandleFunc("GET /api/export/{id}", handleExport)
 
+	mux.HandleFunc("GET /api/tools", func(w http.ResponseWriter, r *http.Request) {
+		tools := registry.List()
+		writeJSON(w, http.StatusOK, tools)
+	})
+
+	mux.HandleFunc("GET /api/tools/count", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"count":   registry.Count(),
+			"version": registry.Version(),
+		})
+	})
+
 	if frontend != nil {
 		mux.Handle("/", frontend)
 	}
