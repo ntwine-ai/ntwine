@@ -1,7 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NtwineApp.Services;
@@ -11,131 +16,43 @@ namespace NtwineApp.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     private readonly OpenRouterService _openRouter = new();
-    private readonly BackendService _backend = new();
+    private readonly BackendService _backendSvc = new();
+    private readonly GoBackendProcess _goBackend;
 
-    [ObservableProperty]
-    private string _promptText = "";
-
-    [ObservableProperty]
-    private string _projectPath = "";
-
-    [ObservableProperty]
-    private string _currentDiscussionTitle = "New Discussion";
-
-    [ObservableProperty]
-    private string _creditsRemaining = "$7.00";
-
-    [ObservableProperty]
-    private int _agentCount = 3;
-
-    [ObservableProperty]
-    private int _toolCount = 15;
-
-    [ObservableProperty]
-    private bool _isRunning = false;
-
-    [ObservableProperty]
-    private string _statusText = "ready";
-
-    [ObservableProperty]
-    private bool _isModelPickerOpen = false;
-
-    [ObservableProperty]
-    private string _modelSearchQuery = "";
-
-    [ObservableProperty]
-    private string _selectedCategory = "All";
-
-    [ObservableProperty]
-    private string _selectedProvider = "All";
-
-    [ObservableProperty]
-    private string _sharedNotes = "";
-
-    [ObservableProperty]
-    private bool _isSettingsOpen = false;
-
-    [ObservableProperty]
-    private string _openRouterKey = "";
-
-    [ObservableProperty]
-    private string _tavilyKey = "";
-
-    [ObservableProperty]
-    private string _anthropicKey = "";
-
-    [ObservableProperty]
-    private string _openAIKey = "";
-
-    [ObservableProperty]
-    private string _googleKey = "";
-
-    [ObservableProperty]
-    private string _deepSeekKey = "";
-
-    [ObservableProperty]
-    private string _backendUrl = "localhost:8080";
+    [ObservableProperty] private string _promptText = "";
+    [ObservableProperty] private string _projectPath = "";
+    [ObservableProperty] private string _currentDiscussionTitle = "New Discussion";
+    [ObservableProperty] private string _creditsRemaining = "BYOK";
+    [ObservableProperty] private int _agentCount = 0;
+    [ObservableProperty] private int _toolCount = 0;
+    [ObservableProperty] private bool _isRunning = false;
+    [ObservableProperty] private string _statusText = "starting...";
+    [ObservableProperty] private bool _backendConnected = false;
+    [ObservableProperty] private string _sharedNotes = "";
+    [ObservableProperty] private int _rounds = 5;
+    [ObservableProperty] private string _mode = "Plan";
 
     public ObservableCollection<ChatMessage> Messages { get; } = new();
     public ObservableCollection<ModelSlot> SelectedModels { get; } = new();
     public ObservableCollection<ThreadItem> Threads { get; } = new();
-    public ObservableCollection<ModelListItem> AvailableModels { get; } = new();
-    public ObservableCollection<string> Categories { get; } = new();
-    public ObservableCollection<string> Providers { get; } = new();
 
-    public MainViewModel()
+    public MainViewModel(GoBackendProcess goBackend)
     {
-        SelectedModels.Add(new ModelSlot("deepseek/deepseek-chat", "DeepSeek V3", "#3b82f6", "$", "free"));
-        SelectedModels.Add(new ModelSlot("qwen/qwen3-coder", "Qwen3 Coder", "#f59e0b", "$", "free"));
-        SelectedModels.Add(new ModelSlot("google/gemini-2.5-flash", "Gemini Flash", "#10b981", "$", "$0.30/1M"));
+        _goBackend = goBackend;
+        _backendSvc = new BackendService();
 
-        Threads.Add(new ThreadItem("auth system design"));
-        Threads.Add(new ThreadItem("fix payment flow"));
-        Threads.Add(new ThreadItem("database schema review"));
+        LoadSettings();
 
-        _ = LoadModels();
+        if (SelectedModels.Count == 0)
+        {
+            SelectedModels.Add(new ModelSlot("deepseek/deepseek-chat", "DeepSeek V3", "#3b82f6", "$", "free"));
+            SelectedModels.Add(new ModelSlot("qwen/qwen3-coder", "Qwen3 Coder", "#f59e0b", "$", "free"));
+            SelectedModels.Add(new ModelSlot("google/gemini-2.5-flash-preview", "Gemini Flash", "#10b981", "$", "$0.30/1M"));
+        }
+        AgentCount = SelectedModels.Count;
     }
 
-    private async Task LoadModels()
-    {
-        try
-        {
-            StatusText = "loading models...";
-            var models = await _openRouter.FetchModels();
-
-            AvailableModels.Clear();
-            var colorIndex = 0;
-            foreach (var m in models)
-            {
-                AvailableModels.Add(new ModelListItem(
-                    m.Id ?? "",
-                    m.Name ?? m.ShortName,
-                    OpenRouterService.FormatProviderName(m.Provider),
-                    m.CostLabel,
-                    m.CostDetail,
-                    m.IsFree,
-                    m.ContextLength,
-                    OpenRouterService.GetAgentColor(colorIndex++),
-                    m.SupportsVision
-                ));
-            }
-
-            Categories.Clear();
-            foreach (var c in _openRouter.GetCategories())
-                Categories.Add(c);
-
-            Providers.Clear();
-            Providers.Add("All");
-            foreach (var p in _openRouter.GetProviders())
-                Providers.Add(OpenRouterService.FormatProviderName(p));
-
-            StatusText = $"{models.Count} models loaded";
-        }
-        catch (Exception ex)
-        {
-            StatusText = $"failed to load models: {ex.Message}";
-        }
-    }
+    public MainViewModel() : this(new GoBackendProcess()) { }
 
     [RelayCommand]
     private void NewDiscussion()
@@ -143,162 +60,155 @@ public partial class MainViewModel : ObservableObject
         Messages.Clear();
         PromptText = "";
         CurrentDiscussionTitle = "New Discussion";
+        SharedNotes = "";
         IsRunning = false;
-        StatusText = "ready";
+        StatusText = BackendConnected ? "connected" : "backend offline";
     }
 
     [RelayCommand]
     private async Task StartDiscussion()
     {
         if (string.IsNullOrWhiteSpace(PromptText)) return;
-        if (SelectedModels.Count == 0) return;
+        if (SelectedModels.Count == 0)
+        {
+            StatusText = "add at least one model first";
+            return;
+        }
+        if (!BackendConnected)
+        {
+            StatusText = "backend not connected";
+            return;
+        }
 
         IsRunning = true;
-        CurrentDiscussionTitle = PromptText.Length > 40
-            ? PromptText[..40] + "..."
-            : PromptText;
+        var prompt = PromptText;
+        PromptText = "";
 
-        Messages.Add(new ChatMessage("You", "#b0a4c8", PromptText, DateTime.Now));
+        CurrentDiscussionTitle = prompt.Length > 50 ? prompt[..50] + "..." : prompt;
+        Messages.Add(new ChatMessage("You", "#b0a4c8", prompt, DateTime.Now));
 
         var modelIds = SelectedModels.Select(m => m.ModelId).ToList();
-        StatusText = $"discussing with {modelIds.Count} models...";
+        StatusText = $"starting with {modelIds.Count} models...";
+
+        _backendSvc.SetUrl($"ws://localhost:{8090}/api/discuss");
 
         try
         {
-            await _backend.StartDiscussion(
-                PromptText,
-                ProjectPath,
+            await _backendSvc.StartDiscussion(
+                prompt,
+                string.IsNullOrEmpty(ProjectPath) ? "." : ProjectPath,
                 modelIds,
-                5,
-                msg =>
+                Rounds,
+                msg => Dispatcher.UIThread.Post(() =>
                 {
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                    {
-                        Messages.Add(msg);
-                        StatusText = $"round {Messages.Count / modelIds.Count + 1}";
-                    });
-                },
-                notes =>
+                    Messages.Add(msg);
+                    if (msg.AgentName != "system" && msg.AgentName != "spec")
+                        StatusText = $"{msg.AgentName} is talking...";
+                }),
+                notes => Dispatcher.UIThread.Post(() => SharedNotes = notes),
+                () => Dispatcher.UIThread.Post(() =>
                 {
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                    {
-                        SharedNotes = notes;
-                    });
-                },
-                () =>
-                {
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                    {
-                        IsRunning = false;
-                        StatusText = "done";
-                    });
-                }
+                    IsRunning = false;
+                    StatusText = "done";
+                    Threads.Insert(0, new ThreadItem(CurrentDiscussionTitle));
+                })
             );
         }
         catch (Exception ex)
         {
-            Messages.Add(new ChatMessage("system", "#ef4444", $"error: {ex.Message}", DateTime.Now));
+            Messages.Add(new ChatMessage("error", "#ef4444", ex.Message, DateTime.Now));
             IsRunning = false;
             StatusText = "error";
         }
-
-        PromptText = "";
     }
 
     [RelayCommand]
     private void StopDiscussion()
     {
-        _backend.Stop();
+        _backendSvc.Stop();
         IsRunning = false;
         StatusText = "stopped";
+        Messages.Add(new ChatMessage("system", "#7a6f96", "discussion stopped by user", DateTime.Now));
     }
 
     [RelayCommand]
-    private void ToggleModelPicker()
+    private void RemoveModel(ModelSlot? model)
     {
-        IsModelPickerOpen = !IsModelPickerOpen;
-    }
-
-    [RelayCommand]
-    private void AddModel(ModelListItem model)
-    {
-        if (SelectedModels.Any(m => m.ModelId == model.Id)) return;
-        if (SelectedModels.Count >= 5)
-        {
-            StatusText = "max 5 models";
-            return;
-        }
-
-        SelectedModels.Add(new ModelSlot(
-            model.Id,
-            model.Name,
-            OpenRouterService.GetAgentColor(SelectedModels.Count),
-            model.CostLabel,
-            model.CostDetail
-        ));
-        AgentCount = SelectedModels.Count;
-        IsModelPickerOpen = false;
-    }
-
-    [RelayCommand]
-    private void RemoveModel(ModelSlot model)
-    {
+        if (model == null) return;
         SelectedModels.Remove(model);
         AgentCount = SelectedModels.Count;
+        SaveSettings();
     }
 
     [RelayCommand]
-    private async Task SelectProject()
+    private void SetMode(string? newMode)
     {
-        // will be wired to folder picker
-        StatusText = "select a project folder...";
+        if (newMode != null) Mode = newMode;
     }
 
-    partial void OnModelSearchQueryChanged(string value)
+    [RelayCommand]
+    private void IncrementRounds()
     {
-        FilterModels();
+        if (Rounds < 20) Rounds++;
     }
 
-    partial void OnSelectedCategoryChanged(string value)
+    [RelayCommand]
+    private void DecrementRounds()
     {
-        FilterModels();
+        if (Rounds > 1) Rounds--;
     }
 
-    partial void OnSelectedProviderChanged(string value)
+    private static readonly string SettingsDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ntwine");
+    private static readonly string SettingsPath = Path.Combine(SettingsDir, "app-settings.json");
+
+    private void SaveSettings()
     {
-        FilterModels();
-    }
-
-    private void FilterModels()
-    {
-        var all = _openRouter.GetCached();
-
-        if (!string.IsNullOrWhiteSpace(ModelSearchQuery))
-            all = _openRouter.Search(ModelSearchQuery);
-
-        if (SelectedCategory != "All")
-            all = _openRouter.FilterByCategory(SelectedCategory);
-
-        AvailableModels.Clear();
-        var colorIndex = 0;
-        foreach (var m in all)
+        try
         {
-            if (SelectedProvider != "All" &&
-                OpenRouterService.FormatProviderName(m.Provider) != SelectedProvider)
-                continue;
-
-            AvailableModels.Add(new ModelListItem(
-                m.Id ?? "",
-                m.Name ?? m.ShortName,
-                OpenRouterService.FormatProviderName(m.Provider),
-                m.CostLabel,
-                m.CostDetail,
-                m.IsFree,
-                m.ContextLength,
-                OpenRouterService.GetAgentColor(colorIndex++),
-                m.SupportsVision
-            ));
+            Directory.CreateDirectory(SettingsDir);
+            var data = new
+            {
+                models = SelectedModels.Select(m => new { m.ModelId, m.DisplayName, m.Color, m.CostLabel, m.CostDetail }).ToList(),
+                project_path = ProjectPath,
+                rounds = Rounds
+            };
+            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
         }
+        catch { }
+    }
+
+    private void LoadSettings()
+    {
+        try
+        {
+            if (!File.Exists(SettingsPath)) return;
+            var json = File.ReadAllText(SettingsPath);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("project_path", out var pp))
+                ProjectPath = pp.GetString() ?? "";
+
+            if (root.TryGetProperty("rounds", out var r))
+                Rounds = r.GetInt32();
+
+            if (root.TryGetProperty("models", out var models))
+            {
+                SelectedModels.Clear();
+                foreach (var m in models.EnumerateArray())
+                {
+                    SelectedModels.Add(new ModelSlot(
+                        m.GetProperty("ModelId").GetString() ?? "",
+                        m.GetProperty("DisplayName").GetString() ?? "",
+                        m.GetProperty("Color").GetString() ?? "#b0a4c8",
+                        m.GetProperty("CostLabel").GetString() ?? "",
+                        m.GetProperty("CostDetail").GetString() ?? ""
+                    ));
+                }
+            }
+        }
+        catch { }
     }
 }
 
@@ -333,36 +243,6 @@ public class ModelSlot
         Color = color;
         CostLabel = cost;
         CostDetail = costDetail;
-    }
-}
-
-public class ModelListItem
-{
-    public string Id { get; }
-    public string Name { get; }
-    public string Provider { get; }
-    public string CostLabel { get; }
-    public string CostDetail { get; }
-    public bool IsFree { get; }
-    public int ContextLength { get; }
-    public string Color { get; }
-    public bool SupportsVision { get; }
-    public string ContextDisplay => ContextLength >= 1_000_000
-        ? $"{ContextLength / 1_000_000}M"
-        : $"{ContextLength / 1000}K";
-
-    public ModelListItem(string id, string name, string provider, string costLabel,
-        string costDetail, bool isFree, int contextLength, string color, bool supportsVision)
-    {
-        Id = id;
-        Name = name;
-        Provider = provider;
-        CostLabel = costLabel;
-        CostDetail = costDetail;
-        IsFree = isFree;
-        ContextLength = contextLength;
-        Color = color;
-        SupportsVision = supportsVision;
     }
 }
 

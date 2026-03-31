@@ -13,7 +13,12 @@ public class BackendService
 {
     private ClientWebSocket? _ws;
     private CancellationTokenSource? _cts;
-    private string _backendUrl = "ws://localhost:8080/api/discuss";
+    private string _backendUrl = "ws://localhost:8090/api/discuss";
+
+    public void SetUrl(string url)
+    {
+        _backendUrl = url;
+    }
 
     public async Task StartDiscussion(
         string prompt,

@@ -140,24 +140,56 @@
                     <Border Classes="composer">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                                <Button Classes="ghost" FontSize="11">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="5" FontWeight="Bold" Foreground="#8b7cf8" />
-                                        <TextBlock Text="rounds" />
-                                    </StackPanel>
+                                <Button Classes="ghost" FontSize="11" Command="{Binding DecrementRoundsCommand}">
+                                    <TextBlock Text="-" FontWeight="Bold" Foreground="#7a6f96" />
                                 </Button>
-                                <Button Classes="ghost" Content="Plan" FontSize="11" />
-                                <Button Classes="ghost" Content="Execute" FontSize="11" />
-                                <Button Classes="ghost" Content="Review" FontSize="11" />
+                                <Border Background="#1e1730" CornerRadius="6" Padding="8,3">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Rounds}" FontWeight="Bold" Foreground="#8b7cf8" FontSize="12" />
+                                        <TextBlock Text="rounds" FontSize="11" Foreground="#7a6f96" />
+                                    </StackPanel>
+                                </Border>
+                                <Button Classes="ghost" FontSize="11" Command="{Binding IncrementRoundsCommand}">
+                                    <TextBlock Text="+" FontWeight="Bold" Foreground="#7a6f96" />
+                                </Button>
+
                                 <Border Width="1" Height="16" Background="#2a2238" Margin="4,0" />
-                                <Button Classes="ghost" Content="MCP" FontSize="11" />
-                                <Button Classes="ghost" Content="Skills" FontSize="11" />
+
+                                <Button Classes="ghost" Content="Plan" FontSize="11"
+                                        Command="{Binding SetModeCommand}" CommandParameter="Plan" />
+                                <Button Classes="ghost" Content="Execute" FontSize="11"
+                                        Command="{Binding SetModeCommand}" CommandParameter="Execute" />
+                                <Button Classes="ghost" Content="Review" FontSize="11"
+                                        Command="{Binding SetModeCommand}" CommandParameter="Review" />
+
+                                <Border Width="1" Height="16" Background="#2a2238" Margin="4,0" />
+
+                                <Border Background="#1e1730" CornerRadius="6" Padding="8,3"
+                                        IsVisible="{Binding BackendConnected}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <Border Width="6" Height="6" CornerRadius="3" Background="#10b981" VerticalAlignment="Center" />
+                                        <TextBlock Text="backend" FontSize="10" Foreground="#10b981" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#1e1730" CornerRadius="6" Padding="8,3"
+                                        IsVisible="{Binding !BackendConnected}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <Border Width="6" Height="6" CornerRadius="3" Background="#ef4444" VerticalAlignment="Center" />
+                                        <TextBlock Text="offline" FontSize="10" Foreground="#ef4444" />
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
 
                             <Grid>
                                 <TextBox Classes="composer-input" Text="{Binding PromptText}" MinHeight="60" MaxHeight="200" />
-                                <Button Classes="primary" Content="Start" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                        Margin="0,0,4,4" Command="{Binding StartDiscussionCommand}" />
+                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4">
+                                    <Button Classes="ghost" Content="Stop" FontSize="11"
+                                            IsVisible="{Binding IsRunning}"
+                                            Command="{Binding StopDiscussionCommand}" />
+                                    <Button Classes="primary" Content="Start"
+                                            IsVisible="{Binding !IsRunning}"
+                                            Command="{Binding StartDiscussionCommand}" />
+                                </StackPanel>
                             </Grid>
                         </DockPanel>
                     </Border>
