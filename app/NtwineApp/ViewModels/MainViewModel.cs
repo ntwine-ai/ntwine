@@ -45,7 +45,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _googleKey = "";
     [ObservableProperty] private string _deepSeekKey = "";
 
-    public ObservableCollection<ChatMessage> Messages { get; } = new();
+    public ObservableCollection<ChatMessage> Messages { get; }
+
+    public bool HasMessages => Messages.Count > 0;
     public ObservableCollection<ModelSlot> SelectedModels { get; } = new();
     public ObservableCollection<ThreadItem> Threads { get; } = new();
     public ObservableCollection<PickerModel> FilteredModels { get; } = new();
@@ -59,6 +61,9 @@ public partial class MainViewModel : ObservableObject
     {
         _goBackend = goBackend;
         _window = window;
+
+        Messages = new ObservableCollection<ChatMessage>();
+        Messages.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasMessages));
 
         LoadSettings();
 
@@ -263,7 +268,8 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        SelectedModels.Add(new ModelSlot(model.Id, model.Name, OpenRouterService.GetAgentColor(SelectedModels.Count), model.CostDetail));
+        var cleanName = CleanModelName(model.Name);
+        SelectedModels.Add(new ModelSlot(model.Id, cleanName, OpenRouterService.GetAgentColor(SelectedModels.Count), model.CostDetail));
         AgentCount = SelectedModels.Count;
         IsModelPickerOpen = false;
         ModelSearchQuery = "";
@@ -343,6 +349,16 @@ public partial class MainViewModel : ObservableObject
     private void DecrementRounds()
     {
         if (Rounds > 1) Rounds--;
+    }
+
+    private static string CleanModelName(string name)
+    {
+        var clean = name;
+        var colon = clean.IndexOf(':');
+        if (colon > 0 && colon < 20) clean = clean[(colon + 1)..].Trim();
+        clean = clean.Replace("(free)", "").Replace("(Free)", "").Trim();
+        if (clean.Length > 30) clean = clean[..30];
+        return clean;
     }
 
     private void SaveSettingsInternal()

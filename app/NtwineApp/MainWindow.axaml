@@ -97,7 +97,18 @@
                 <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
 
                     <!-- messages -->
-                    <ScrollViewer Grid.Column="0" Padding="24,16" Name="ChatScroll">
+                    <Panel Grid.Column="0">
+
+                        <!-- empty state -->
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
+                                    IsVisible="{Binding !HasMessages}">
+                            <TextBlock Text="what are we building?" FontSize="28" FontWeight="Bold"
+                                       Foreground="#2a2238" HorizontalAlignment="Center" />
+                            <TextBlock Text="pick some models, select a project, and describe the task"
+                                       FontSize="13" Foreground="#3d3555" HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <ScrollViewer Padding="24,16" Name="ChatScroll" IsVisible="{Binding HasMessages}">
                         <ItemsControl ItemsSource="{Binding Messages}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -120,6 +131,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+                    </Panel>
 
                     <!-- shared spec panel (shows when notes exist) -->
                     <Border Grid.Column="1" Width="300" Background="#0f0b15" BorderBrush="#1e1730" BorderThickness="1,0,0,0"
@@ -308,7 +320,7 @@
             </Border>
 
             <!-- settings view -->
-            <ScrollViewer IsVisible="{Binding IsSettingsOpen}" Padding="40,50,40,20">
+            <ScrollViewer IsVisible="{Binding IsSettingsOpen}" Padding="40,50,40,20" Background="#110d18">
                 <StackPanel MaxWidth="500" Spacing="20">
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Classes="ghost" Content="Close" Command="{Binding ToggleSettingsCommand}" />

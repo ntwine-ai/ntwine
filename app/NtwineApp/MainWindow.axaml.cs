@@ -21,9 +21,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-#if DEBUG
-        this.AttachDevTools();
-#endif
+        if (Avalonia.Controls.Design.IsDesignMode)
+        {
+            DataContext = new MainViewModel();
+            return;
+        }
 
         _vm = new MainViewModel(_backend, this);
         DataContext = _vm;
