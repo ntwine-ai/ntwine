@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using NtwineApp.Services;
 using NtwineApp.ViewModels;
@@ -45,6 +46,18 @@ public partial class MainWindow : Window
         {
             _backend.Dispose();
         };
+    }
+
+    private void OnModelRowClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string modelId && _vm != null)
+        {
+            var model = _vm.FilteredModels.FirstOrDefault(m => m.Id == modelId);
+            if (model != null)
+            {
+                _vm.PickModelCommand.Execute(model);
+            }
+        }
     }
 
     public async System.Threading.Tasks.Task<string?> PickFolder()

@@ -31,7 +31,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _rounds = 5;
 
     [ObservableProperty] private bool _isSettingsOpen = false;
+    [ObservableProperty] private bool _isModelPickerOpen = false;
     [ObservableProperty] private bool _hasNotes = false;
+    [ObservableProperty] private string _modelSearchQuery = "";
+    [ObservableProperty] private string _selectedProviderFilter = "All";
+    [ObservableProperty] private bool _showFreeOnly = false;
+    [ObservableProperty] private bool _isLoadingModels = false;
 
     [ObservableProperty] private string _openRouterKey = "";
     [ObservableProperty] private string _tavilyKey = "";
@@ -43,6 +48,8 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<ChatMessage> Messages { get; } = new();
     public ObservableCollection<ModelSlot> SelectedModels { get; } = new();
     public ObservableCollection<ThreadItem> Threads { get; } = new();
+    public ObservableCollection<PickerModel> FilteredModels { get; } = new();
+    public ObservableCollection<string> ProviderFilters { get; } = new();
 
     private static readonly string SettingsDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ntwine");
@@ -236,9 +243,94 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ShowAddModel()
+    private async Task ShowAddModel()
     {
-        StatusText = "type model ID (e.g. anthropic/claude-sonnet-4-6) in prompt and prefix with /add";
+        IsModelPickerOpen = !IsModelPickerOpen;
+        if (IsModelPickerOpen && FilteredModels.Count == 0)
+        {
+            await LoadModels();
+        }
+    }
+
+    [RelayCommand]
+    private void PickModel(PickerModel? model)
+    {
+        if (model == null) return;
+        if (SelectedModels.Any(m => m.ModelId == model.Id)) return;
+        if (SelectedModels.Count >= 5)
+        {
+            StatusText = "max 5 models";
+            return;
+        }
+
+        SelectedModels.Add(new ModelSlot(model.Id, model.Name, OpenRouterService.GetAgentColor(SelectedModels.Count), model.CostDetail));
+        AgentCount = SelectedModels.Count;
+        IsModelPickerOpen = false;
+        ModelSearchQuery = "";
+        SaveSettingsInternal();
+    }
+
+    private async Task LoadModels()
+    {
+        IsLoadingModels = true;
+        StatusText = "loading models...";
+
+        try
+        {
+            var models = await _openRouter.FetchModels();
+
+            ProviderFilters.Clear();
+            ProviderFilters.Add("All");
+            ProviderFilters.Add("Free");
+            foreach (var p in _openRouter.GetProviders())
+                ProviderFilters.Add(OpenRouterService.FormatProviderName(p));
+
+            ApplyModelFilters();
+            StatusText = $"{models.Count} models loaded";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"failed: {ex.Message}";
+        }
+
+        IsLoadingModels = false;
+    }
+
+    partial void OnModelSearchQueryChanged(string value) => ApplyModelFilters();
+    partial void OnSelectedProviderFilterChanged(string value) => ApplyModelFilters();
+    partial void OnShowFreeOnlyChanged(bool value) => ApplyModelFilters();
+
+    private void ApplyModelFilters()
+    {
+        var all = _openRouter.GetCached();
+
+        if (!string.IsNullOrWhiteSpace(ModelSearchQuery))
+            all = _openRouter.Search(ModelSearchQuery);
+
+        if (SelectedProviderFilter == "Free")
+            all = all.Where(m => m.IsFree).ToList();
+        else if (SelectedProviderFilter != "All" && SelectedProviderFilter != "Free")
+            all = all.Where(m => OpenRouterService.FormatProviderName(m.Provider) == SelectedProviderFilter).ToList();
+
+        if (ShowFreeOnly)
+            all = all.Where(m => m.IsFree).ToList();
+
+        var alreadySelected = SelectedModels.Select(m => m.ModelId).ToHashSet();
+
+        FilteredModels.Clear();
+        foreach (var m in all.Take(50))
+        {
+            FilteredModels.Add(new PickerModel(
+                m.Id ?? "",
+                m.Name ?? m.ShortName,
+                OpenRouterService.FormatProviderName(m.Provider),
+                m.CostLabel,
+                OpenRouterService.GetCostPerMillion(m),
+                m.IsFree,
+                m.ContextLength,
+                alreadySelected.Contains(m.Id ?? "")
+            ));
+        }
     }
 
     [RelayCommand]
@@ -382,4 +474,30 @@ public class ThreadItem
 {
     public string Title { get; }
     public ThreadItem(string title) => Title = title;
+}
+
+public class PickerModel
+{
+    public string Id { get; }
+    public string Name { get; }
+    public string Provider { get; }
+    public string CostLabel { get; }
+    public string CostDetail { get; }
+    public bool IsFree { get; }
+    public int ContextLength { get; }
+    public bool AlreadySelected { get; }
+    public string ContextDisplay => ContextLength >= 1_000_000 ? $"{ContextLength / 1_000_000}M" : $"{ContextLength / 1000}K";
+    public string CostColor => IsFree ? "#10b981" : CostLabel == "$" ? "#f59e0b" : CostLabel == "$$" ? "#f97316" : "#ef4444";
+
+    public PickerModel(string id, string name, string provider, string costLabel, string costDetail, bool isFree, int contextLength, bool alreadySelected)
+    {
+        Id = id;
+        Name = name;
+        Provider = provider;
+        CostLabel = costLabel;
+        CostDetail = costDetail;
+        IsFree = isFree;
+        ContextLength = contextLength;
+        AlreadySelected = alreadySelected;
+    }
 }
