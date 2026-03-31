@@ -92,6 +92,7 @@ public partial class MainViewModel : ObservableObject
         }
         AgentCount = SelectedModels.Count;
         UpdateActiveAgent();
+        OnPermissionModeChanged(PermissionMode);
     }
 
     public MainViewModel() : this(new GoBackendProcess()) { }
@@ -253,17 +254,33 @@ public partial class MainViewModel : ObservableObject
         HasNotes = !string.IsNullOrWhiteSpace(value);
     }
 
-    public bool IsPlanMode => PermissionMode == "plan";
-    public bool IsEditsMode => PermissionMode == "accept-edits";
-    public bool IsAllMode => PermissionMode == "allow-all";
-    public bool IsCustomMode => PermissionMode == "custom";
+    private static readonly string[] ModeOrder = { "plan", "accept-edits", "allow-all", "custom" };
+    private static readonly Dictionary<string, string> ModeDisplayNames = new()
+    {
+        ["plan"] = "Plan", ["accept-edits"] = "Accept Edits", ["allow-all"] = "Allow All", ["custom"] = "Custom"
+    };
+    private static readonly Dictionary<string, string> ModeColors = new()
+    {
+        ["plan"] = "#8b7cf8", ["accept-edits"] = "#10b981", ["allow-all"] = "#f59e0b", ["custom"] = "#a855f7"
+    };
+
+    [ObservableProperty] private string _activeModeDisplayName = "Plan";
+    [ObservableProperty] private string _activeModeColor = "#8b7cf8";
+    [ObservableProperty] private IBrush _activeModeBrush = new SolidColorBrush(Color.Parse("#8b7cf8"));
+
+    [RelayCommand]
+    private void CycleMode()
+    {
+        var idx = Array.IndexOf(ModeOrder, PermissionMode);
+        PermissionMode = ModeOrder[(idx + 1) % ModeOrder.Length];
+    }
 
     partial void OnPermissionModeChanged(string value)
     {
-        OnPropertyChanged(nameof(IsPlanMode));
-        OnPropertyChanged(nameof(IsEditsMode));
-        OnPropertyChanged(nameof(IsAllMode));
-        OnPropertyChanged(nameof(IsCustomMode));
+        ActiveModeDisplayName = ModeDisplayNames.GetValueOrDefault(value, value);
+        ActiveModeColor = ModeColors.GetValueOrDefault(value, "#7a6f96");
+        try { ActiveModeBrush = new SolidColorBrush(Color.Parse(ActiveModeColor)); }
+        catch { ActiveModeBrush = new SolidColorBrush(Color.Parse("#7a6f96")); }
     }
 
     [RelayCommand]

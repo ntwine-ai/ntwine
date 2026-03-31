@@ -81,7 +81,7 @@ public static class ProviderLogoService
 
         try
         {
-            var bytes = await Http.GetByteArrayAsync($"https://logo.clearbit.com/{domain}?size=64");
+            var bytes = await Http.GetByteArrayAsync($"https://www.google.com/s2/favicons?domain={domain}&sz=128");
             await File.WriteAllBytesAsync(diskPath, bytes);
 
             using var stream = new MemoryStream(bytes);
