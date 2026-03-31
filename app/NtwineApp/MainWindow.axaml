@@ -46,7 +46,13 @@
                         <ItemsControl ItemsSource="{Binding Threads}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Classes="sidebar-item" Content="{Binding Title}" />
+                                    <Button Classes="sidebar-item" Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).LoadThreadCommand}"
+                                            CommandParameter="{Binding}">
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Timestamp}" FontSize="9" Foreground="#585070" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                    </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -420,6 +426,18 @@
 
                     <Separator Background="#1e1730" Height="1" />
 
+                    <StackPanel Spacing="8">
+                        <DockPanel>
+                            <ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding CloudSyncEnabled}" OnContent="" OffContent="" />
+                            <StackPanel>
+                                <TextBlock Text="CLOUD SYNC" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                                <TextBlock Text="sync threads across devices. requires login." FontSize="11" Foreground="#585070" />
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+
+                    <Separator Background="#1e1730" Height="1" />
+
                     <!-- backend -->
                     <StackPanel Spacing="8">
                         <TextBlock Text="BACKEND" Classes="muted" FontSize="10" FontWeight="SemiBold" />
@@ -448,7 +466,8 @@
                     <!-- danger zone -->
                     <StackPanel Spacing="8">
                         <TextBlock Text="DATA" Classes="muted" FontSize="10" FontWeight="SemiBold" />
-                        <Button Classes="ghost" Content="Clear all threads" HorizontalAlignment="Left" FontSize="12" />
+                        <Button Classes="ghost" Content="Clear all threads" HorizontalAlignment="Left" FontSize="12"
+                                Command="{Binding ClearAllThreadsCommand}" />
                         <Button Classes="ghost" Content="Reset settings" HorizontalAlignment="Left" FontSize="12" />
                     </StackPanel>
 

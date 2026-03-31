@@ -45,6 +45,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _isLoadingModels = false;
 
     [ObservableProperty] private bool _byokEnabled = false;
+    [ObservableProperty] private bool _cloudSyncEnabled = false;
     [ObservableProperty] private string _newKeyProvider = "OpenRouter";
 
     // kept for backward compat with settings loading
@@ -83,6 +84,7 @@ public partial class MainViewModel : ObservableObject
         Messages.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasMessages));
 
         LoadSettings();
+        LoadThreadsFromDisk();
 
         if (SelectedModels.Count == 0)
         {
@@ -175,7 +177,12 @@ public partial class MainViewModel : ObservableObject
                     IsRunning = false;
                     StatusText = "done";
                     if (!string.IsNullOrEmpty(CurrentDiscussionTitle))
-                        Threads.Insert(0, new ThreadItem(CurrentDiscussionTitle));
+                    {
+                        var threadId = Guid.NewGuid().ToString("N")[..8];
+                        ThreadStorageService.Save(threadId, CurrentDiscussionTitle, Messages);
+                        Threads.Insert(0, new ThreadItem(threadId, CurrentDiscussionTitle));
+                        if (Threads.Count > 20) Threads.RemoveAt(Threads.Count - 1);
+                    }
                     SaveSettingsInternal();
                 })
             );
@@ -306,6 +313,42 @@ public partial class MainViewModel : ObservableObject
         ActiveAgentColor = SelectedModels[idx].Color;
         try { ActiveAgentBrush = new SolidColorBrush(Color.Parse(SelectedModels[idx].Color)); }
         catch { ActiveAgentBrush = new SolidColorBrush(Color.Parse("#7a6f96")); }
+    }
+
+    [RelayCommand]
+    private void LoadThread(ThreadItem? thread)
+    {
+        if (thread == null) return;
+
+        var result = ThreadStorageService.Load(thread.Id);
+        if (result == null)
+        {
+            StatusText = "thread not found";
+            return;
+        }
+
+        Messages.Clear();
+        foreach (var msg in result.Value.Messages)
+            Messages.Add(msg);
+
+        CurrentDiscussionTitle = result.Value.Title;
+        IsRunning = false;
+        StatusText = "loaded";
+    }
+
+    [RelayCommand]
+    private void ClearAllThreads()
+    {
+        ThreadStorageService.ClearAll();
+        Threads.Clear();
+        StatusText = "threads cleared";
+    }
+
+    private void LoadThreadsFromDisk()
+    {
+        Threads.Clear();
+        foreach (var thread in ThreadStorageService.ListAll(20))
+            Threads.Add(thread);
     }
 
     [RelayCommand]
@@ -467,6 +510,7 @@ public partial class MainViewModel : ObservableObject
                 models = SelectedModels.Select(m => new { m.ModelId, m.DisplayName, m.Color, m.CostDetail }).ToList(),
                 project_path = ProjectPath,
                 permission_mode = PermissionMode,
+                cloud_sync = CloudSyncEnabled,
                 openrouter_key = OpenRouterKey,
                 tavily_key = TavilyKey,
                 anthropic_key = AnthropicKey,
@@ -490,6 +534,7 @@ public partial class MainViewModel : ObservableObject
 
             if (root.TryGetProperty("project_path", out var pp)) ProjectPath = pp.GetString() ?? "";
             if (root.TryGetProperty("permission_mode", out var pm)) PermissionMode = pm.GetString() ?? "plan";
+            if (root.TryGetProperty("cloud_sync", out var cs)) CloudSyncEnabled = cs.GetBoolean();
             if (root.TryGetProperty("openrouter_key", out var ork)) OpenRouterKey = ork.GetString() ?? "";
             if (root.TryGetProperty("tavily_key", out var tk)) TavilyKey = tk.GetString() ?? "";
             if (root.TryGetProperty("anthropic_key", out var ak)) AnthropicKey = ak.GetString() ?? "";
@@ -584,8 +629,23 @@ public class ModelSlot
 
 public class ThreadItem
 {
+    public string Id { get; }
     public string Title { get; }
-    public ThreadItem(string title) => Title = title;
+    public string Timestamp { get; }
+
+    public ThreadItem(string id, string title)
+    {
+        Id = id;
+        Title = title;
+        Timestamp = DateTime.Now.ToString("MMM d");
+    }
+
+    public ThreadItem(string id, string title, string timestamp)
+    {
+        Id = id;
+        Title = title;
+        Timestamp = timestamp;
+    }
 }
 
 public class ApiKeyEntry : ObservableObject
