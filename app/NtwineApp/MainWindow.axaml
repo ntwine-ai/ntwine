@@ -219,24 +219,43 @@
 
             </Grid>
 
-            <!-- model picker overlay -->
-            <Border IsVisible="{Binding IsModelPickerOpen}" Background="#0c0810" CornerRadius="16"
-                    BorderBrush="#2a2238" BorderThickness="1" Margin="40,50,40,30"
-                    Padding="0">
+            <!-- model picker overlay (t3.chat style) -->
+            <Border IsVisible="{Binding IsModelPickerOpen}" Background="#0c0810" CornerRadius="12"
+                    BorderBrush="#2a2238" BorderThickness="1" Margin="60,50,60,40">
                 <DockPanel>
 
-                    <!-- search bar -->
-                    <StackPanel DockPanel.Dock="Top" Margin="16,16,16,8" Spacing="8">
+                    <!-- top: upgrade banner -->
+                    <Border DockPanel.Dock="Top" Padding="12" CornerRadius="12,12,0,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#1a0f20" Offset="0" />
+                                <GradientStop Color="#251530" Offset="0.5" />
+                                <GradientStop Color="#1a0f20" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
                         <DockPanel>
-                            <Button DockPanel.Dock="Right" Classes="ghost" Content="Done" FontSize="12"
+                            <Button DockPanel.Dock="Right" Classes="primary" Content="Done" Padding="12,6" FontSize="11"
                                     Command="{Binding ShowAddModelCommand}" />
-                            <TextBlock Text="Add Model" FontSize="16" FontWeight="Bold" Foreground="#e8e0f4" />
+                            <StackPanel>
+                                <TextBlock Text="Select models" FontSize="13" FontWeight="SemiBold" Foreground="#e8e0f4" />
+                                <TextBlock Text="click any model to add it (max 5)" FontSize="11" Foreground="#7a6f96" />
+                            </StackPanel>
                         </DockPanel>
-                        <TextBox Watermark="search models..." Text="{Binding ModelSearchQuery}"
-                                 Background="#1a1425" BorderBrush="#2a2238" BorderThickness="1"
-                                 CornerRadius="8" Padding="10,8" FontSize="13" Foreground="#e8e0f4" />
+                    </Border>
 
-                        <!-- provider filter pills -->
+                    <!-- search row -->
+                    <Border DockPanel.Dock="Top" Padding="12,8" BorderBrush="#1e1730" BorderThickness="0,0,0,1">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Left" Text="Q" FontSize="14" Foreground="#585070"
+                                       VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBox Background="Transparent" BorderThickness="0" Watermark="Search models..."
+                                     Text="{Binding ModelSearchQuery}" FontSize="13" Foreground="#e8e0f4"
+                                     VerticalAlignment="Center" />
+                        </DockPanel>
+                    </Border>
+
+                    <!-- provider filter row -->
+                    <Border DockPanel.Dock="Top" Padding="8,6" BorderBrush="#1e1730" BorderThickness="0,0,0,1">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                             <ItemsControl ItemsSource="{Binding ProviderFilters}">
                                 <ItemsControl.ItemsPanel>
@@ -246,50 +265,54 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border CornerRadius="12" Background="#1e1730" Padding="10,4" Cursor="Hand">
+                                        <Border CornerRadius="14" Background="#1a1425" Padding="10,4" Cursor="Hand"
+                                                BorderBrush="#2a2238" BorderThickness="1">
                                             <TextBlock Text="{Binding}" FontSize="11" Foreground="#b0a4c8" />
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>
-                    </StackPanel>
+                    </Border>
 
                     <!-- model list -->
-                    <ScrollViewer Margin="0,4,0,0">
-                        <ItemsControl ItemsSource="{Binding FilteredModels}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Background="Transparent" BorderThickness="0" Padding="16,8"
-                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                            Cursor="Hand" CornerRadius="0"
-                                            Tag="{Binding Id}"
-                                            Click="OnModelRowClick">
-                                        <DockPanel>
-                                            <!-- right side: context + cost -->
-                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                <Border CornerRadius="4" Background="#0f2a1f" Padding="5,2" IsVisible="{Binding IsFree}">
-                                                    <TextBlock Text="free" FontSize="9" FontWeight="Bold" Foreground="#10b981" />
-                                                </Border>
-                                                <TextBlock Text="{Binding ContextDisplay}" FontSize="10" Foreground="#585070" VerticalAlignment="Center" />
-                                            </StackPanel>
-
-                                            <!-- left side: name + provider + cost -->
-                                            <StackPanel Spacing="1">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="#e8e0f4" />
-                                                    <TextBlock Text="{Binding CostLabel}" FontSize="10" Foreground="{Binding CostColor}" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ScrollViewer>
+                        <StackPanel Spacing="0">
+                            <ItemsControl ItemsSource="{Binding FilteredModels}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Background="Transparent" BorderThickness="0" Padding="12,6,12,6"
+                                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                Cursor="Hand" CornerRadius="8" Margin="4,1"
+                                                Tag="{Binding Id}" Click="OnModelRowClick">
+                                            <Grid ColumnDefinitions="*,Auto" Height="52">
+                                                <!-- left: model info -->
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#e8e0f4" />
+                                                        <TextBlock Text="{Binding CostLabel}" FontSize="10"
+                                                                   Foreground="{Binding CostColor}" VerticalAlignment="Center"
+                                                                   FontFamily="JetBrains Mono,monospace" FontWeight="SemiBold" />
+                                                    </StackPanel>
                                                     <TextBlock Text="{Binding Provider}" FontSize="11" Foreground="#585070" />
-                                                    <TextBlock Text="{Binding CostDetail}" FontSize="10" Foreground="#3d3555" />
                                                 </StackPanel>
-                                            </StackPanel>
-                                        </DockPanel>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+
+                                                <!-- right: badges -->
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Border CornerRadius="4" Background="#0f2a1f" Padding="6,2" IsVisible="{Binding IsFree}">
+                                                        <TextBlock Text="free" FontSize="9" FontWeight="Bold" Foreground="#10b981" />
+                                                    </Border>
+                                                    <Border CornerRadius="4" Background="#1e1730" Padding="6,2">
+                                                        <TextBlock Text="{Binding ContextDisplay}" FontSize="9" Foreground="#7a6f96" />
+                                                    </Border>
+                                                    <TextBlock Text="{Binding CostDetail}" FontSize="9" Foreground="#3d3555" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
                     </ScrollViewer>
 
                 </DockPanel>
