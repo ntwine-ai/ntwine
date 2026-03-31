@@ -29,13 +29,15 @@
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         Content="New Discussion" Command="{Binding NewDiscussionCommand}" />
 
-                <Border DockPanel.Dock="Top" Background="#1a1425" CornerRadius="8" Margin="16,0,16,12" Padding="10,8">
+                <Button DockPanel.Dock="Top" Background="#1a1425" CornerRadius="8" Margin="16,0,16,12" Padding="10,8"
+                        BorderThickness="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Cursor="Hand" Command="{Binding SelectProjectCommand}">
                     <StackPanel>
                         <TextBlock Text="PROJECT" Classes="muted" FontSize="10" FontWeight="SemiBold" />
                         <TextBlock Text="{Binding ProjectPath, FallbackValue='click to select...'}"
                                    FontSize="12" Foreground="#b0a4c8" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
-                </Border>
+                </Button>
 
                 <ScrollViewer DockPanel.Dock="Top" Margin="8,0">
                     <StackPanel Spacing="2">

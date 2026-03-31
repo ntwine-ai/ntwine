@@ -126,7 +126,7 @@ public class BackendService
             {
                 case "message":
                     var content = root.GetProperty("content").GetString() ?? "";
-                    onMessage(new ChatMessage(displayName, color, content, DateTime.Now));
+                    onMessage(new ChatMessage(displayName, color, content));
                     break;
 
                 case "tool_call":
@@ -135,7 +135,7 @@ public class BackendService
                         var tc = root.GetProperty("content");
                         var toolName = tc.GetProperty("name").GetString() ?? "";
                         onMessage(new ChatMessage(displayName, "#7a6f96",
-                            $"[tool] {toolName}", DateTime.Now));
+                            $"[tool] {toolName}"));
                     }
                     break;
 
@@ -148,7 +148,7 @@ public class BackendService
                         if (resultText.Length > 200)
                             resultText = resultText[..200] + "...";
                         onMessage(new ChatMessage(displayName, "#7a6f96",
-                            $"[result] {toolName}: {resultText}", DateTime.Now));
+                            $"[result] {toolName}: {resultText}"));
                     }
                     break;
 
@@ -156,27 +156,26 @@ public class BackendService
                     var notes = root.GetProperty("content").GetString() ?? "";
                     onNotesUpdate(notes);
                     onMessage(new ChatMessage("spec", "#8b7cf8",
-                        "[shared spec updated]", DateTime.Now));
+                        "[shared spec updated]"));
                     break;
 
                 case "status":
                     var status = root.GetProperty("content").GetString() ?? "";
                     if (status.Contains("round"))
                     {
-                        onMessage(new ChatMessage("system", "#7a6f96",
-                            status, DateTime.Now));
+                        onMessage(new ChatMessage("system", "#7a6f96", status));
                     }
                     break;
 
                 case "error":
                     var err = root.GetProperty("content").GetString() ?? "";
-                    onMessage(new ChatMessage("error", "#ef4444", err, DateTime.Now));
+                    onMessage(new ChatMessage("error", "#ef4444", err));
                     break;
 
                 case "execution_prompt":
                     var ep = root.GetProperty("content").GetString() ?? "";
                     onMessage(new ChatMessage("plan", "#10b981",
-                        ep.Length > 500 ? ep[..500] + "..." : ep, DateTime.Now));
+                        ep.Length > 500 ? ep[..500] + "..." : ep));
                     break;
             }
         }
