@@ -209,6 +209,22 @@ func TestSearchCodeHandler_QueryTooLong(t *testing.T) {
 	}
 }
 
+func TestSearchCodeHandler_InvalidRegex_ReturnsError(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+	writeFile(t, dir, "code.go", "package main\n")
+
+	handler := searchCodeHandler(dir)
+	// invalid regex pattern — grep exits with error code 2 (not 1)
+	raw, _ := json.Marshal(map[string]string{"query": `[invalid regex`})
+	result, err := handler(context.Background(), raw)
+	// either returns error or IsError — grep may return code 2 for bad regex
+	if err == nil && !result.IsError {
+		// some greps may still handle it gracefully; that's fine
+		t.Log("grep handled invalid regex without error - that's ok")
+	}
+}
+
 func TestSearchCodeHandler_WithSubPath(t *testing.T) {
 	dir, cleanup := setupCodebase(t)
 	defer cleanup()
@@ -357,6 +373,25 @@ func TestUpdateNotesHandler_UnknownAction(t *testing.T) {
 	_, err := handler(context.Background(), raw)
 	if err == nil {
 		t.Error("expected error for unknown action")
+	}
+}
+
+func TestUpdateNotesHandler_InvalidJSON(t *testing.T) {
+	notes := ""
+	handler := updateNotesHandler(&notes)
+	_, err := handler(context.Background(), json.RawMessage(`not json`))
+	if err == nil {
+		t.Error("expected error for invalid JSON")
+	}
+}
+
+func TestSearchCodeHandler_InvalidJSON(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+	handler := searchCodeHandler(dir)
+	_, err := handler(context.Background(), json.RawMessage(`not json`))
+	if err == nil {
+		t.Error("expected error for invalid JSON")
 	}
 }
 

@@ -346,6 +346,16 @@ func TestWriteFileHandler_CreatesParentDirs(t *testing.T) {
 	}
 }
 
+func TestWriteFileHandler_InvalidJSON_ReturnsError(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+	handler := writeFileHandler(dir)
+	_, err := handler(context.Background(), json.RawMessage(`not json`))
+	if err == nil {
+		t.Error("expected error for invalid JSON")
+	}
+}
+
 func TestWriteFileHandler_PathTraversal(t *testing.T) {
 	dir, cleanup := setupCodebase(t)
 	defer cleanup()
@@ -362,6 +372,14 @@ func TestWriteFileHandler_PathTraversal(t *testing.T) {
 }
 
 // RegisterEditTools integration
+
+func TestFindHandler_ReturnsNilForMissing(t *testing.T) {
+	r := NewRegistry()
+	h := findHandler(r, "nonexistent")
+	if h != nil {
+		t.Error("expected nil for nonexistent tool")
+	}
+}
 
 func TestRegisterEditTools_ReplacesReadFileWithTracker(t *testing.T) {
 	dir, cleanup := setupCodebase(t)

@@ -3,6 +3,7 @@ package harness
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -237,6 +238,22 @@ func TestHookMiddleware_SuccessfulHook_ToolExecutes(t *testing.T) {
 	if result.Output != "executed" {
 		t.Errorf("expected 'executed', got: %s", result.Output)
 	}
+}
+
+func TestHookMiddleware_HandlerReturnsError_Propagated(t *testing.T) {
+	hr := NewHookRunner()
+	// no hooks — go straight to handler
+
+	mw := HookMiddleware(hr)
+	errHandler := func(ctx context.Context, args json.RawMessage) (ToolResult, error) {
+		return ToolResult{}, fmt.Errorf("handler failed")
+	}
+	ctx := ContextWithToolName(context.Background(), "test_tool")
+	result, err := mw(errHandler)(ctx, json.RawMessage(`{}`))
+	if err == nil {
+		t.Error("expected error to propagate from handler")
+	}
+	_ = result
 }
 
 // ContextWithToolName

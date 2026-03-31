@@ -256,6 +256,29 @@ func TestMemoryStore_All_SkipsCorruptJSON(t *testing.T) {
 	}
 }
 
+func TestMemoryStore_Load_InvalidKey_ReturnsFalse(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	store := NewMemoryStore(dir)
+	// ".." is an invalid key per sanitizeKey
+	_, found := store.Load("..")
+	if found {
+		t.Error("invalid key should return found=false")
+	}
+}
+
+func TestMemoryStore_Save_InvalidKey_ReturnsError(t *testing.T) {
+	dir, cleanup := setupCodebase(t)
+	defer cleanup()
+
+	store := NewMemoryStore(dir)
+	err := store.Save("..", "value", "agent")
+	if err == nil {
+		t.Error("expected error for invalid key '..'")
+	}
+}
+
 func TestMemoryStore_Load_CorruptJSON_ReturnsFalse(t *testing.T) {
 	dir, cleanup := setupCodebase(t)
 	defer cleanup()

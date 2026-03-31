@@ -120,6 +120,20 @@ func TestThinkTool_LargeThought(t *testing.T) {
 	}
 }
 
+func TestThinkTool_InvalidJSON_ReturnsError(t *testing.T) {
+	r := NewRegistry()
+	RegisterThinkTool(r)
+
+	result, err := r.Execute(context.Background(), "think", `not json`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// handler returns error which registry converts to IsError result
+	if !result.IsError {
+		t.Error("expected IsError=true for invalid JSON args")
+	}
+}
+
 func TestThinkTool_OutputIsPrivate_NoContent(t *testing.T) {
 	r := NewRegistry()
 	RegisterThinkTool(r)

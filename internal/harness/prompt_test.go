@@ -163,6 +163,14 @@ func TestBuildPlanningPrompt_EmptyCodebasePath(t *testing.T) {
 	}
 }
 
+func TestBuildPlanningPrompt_TeammateDefaultRole(t *testing.T) {
+	noRole := AgentRole{ID: "z-id", Name: "Zara"}
+	prompt := BuildPlanningPrompt(sampleAgent, []AgentRole{sampleAgent, noRole}, "task", "")
+	if !strings.Contains(prompt, "developer") {
+		t.Errorf("expected default 'developer' role for teammate without role, got: %q", prompt[strings.Index(prompt, "team:"):])
+	}
+}
+
 // BuildReviewPrompt
 
 func TestBuildReviewPrompt_ContainsAgentName(t *testing.T) {
