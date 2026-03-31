@@ -76,6 +76,18 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnModeClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string mode && _vm != null)
+            _vm.PermissionMode = mode;
+    }
+
+    private void OnProviderClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string provider && _vm != null)
+            _vm.SelectedProviderFilter = provider;
+    }
+
     private void OnModelRowClick(object? sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is string modelId && _vm != null)

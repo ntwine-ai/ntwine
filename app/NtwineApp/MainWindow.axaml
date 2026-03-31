@@ -154,86 +154,103 @@
 
                 <!-- composer -->
                 <Border Grid.Row="2" Margin="24,0,24,16">
-                    <StackPanel>
+                    <Border Classes="composer" BorderBrush="{Binding ActiveAgentBrush}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+                                <Button Background="Transparent" BorderThickness="0" Padding="6,4" Cursor="Hand"
+                                        Command="{Binding CycleAgentCommand}" CornerRadius="8" ToolTip.Tip="click to switch agent">
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <Border Width="8" Height="8" CornerRadius="4" Background="{Binding ActiveAgentColor}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding ActiveAgentName}" FontSize="11" Foreground="{Binding ActiveAgentColor}" FontWeight="SemiBold" />
+                                        <TextBlock Text="&#x25B8;" FontSize="9" Foreground="#585070" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
 
-                        <!-- model pills -->
-                        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,8">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <ItemsControl ItemsSource="{Binding SelectedModels}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal" Spacing="6" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border CornerRadius="16" Background="#1e1730" BorderBrush="#2a2238" BorderThickness="1" Padding="8,4,4,4">
-                                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                                    <Border Width="6" Height="6" CornerRadius="3" Background="{Binding Color}" VerticalAlignment="Center" />
-                                                    <TextBlock Text="{Binding DisplayName}" FontSize="11" Foreground="#b0a4c8" VerticalAlignment="Center" />
-                                                    <TextBlock Text="{Binding CostDetail}" FontSize="9" Foreground="#585070" VerticalAlignment="Center" />
-                                                    <Button Background="Transparent" BorderThickness="0" Padding="3"
-                                                            Cursor="Hand" CornerRadius="8" Width="18" Height="18"
-                                                            Tag="{Binding ModelId}" Click="OnRemoveModelClick"
-                                                            VerticalAlignment="Center" HorizontalContentAlignment="Center">
-                                                        <TextBlock Text="x" FontSize="9" Foreground="#585070" />
-                                                    </Button>
-                                                </StackPanel>
+                                <Button Background="Transparent" BorderThickness="0" Padding="4,3" Cursor="Hand"
+                                        Command="{Binding ShowAddModelCommand}" CornerRadius="6" ToolTip.Tip="add agent">
+                                    <TextBlock Text="+" FontSize="13" Foreground="#585070" FontWeight="Bold" />
+                                </Button>
+
+                                <Border Width="1" Height="14" Background="#2a2238" Margin="2,0" VerticalAlignment="Center" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="3">
+                                    <Button Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" Tag="plan" Click="OnModeClick">
+                                        <Panel>
+                                            <Border CornerRadius="6" Background="#151020" Padding="8,4" BorderBrush="Transparent" BorderThickness="1"
+                                                    IsVisible="{Binding !IsPlanMode}">
+                                                <TextBlock Text="Plan" FontSize="10" Foreground="#585070" />
                                             </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <Button Classes="ghost" Content="+ Add" FontSize="11" Command="{Binding ShowAddModelCommand}" />
-                            </StackPanel>
-                        </ScrollViewer>
-
-                        <!-- input area -->
-                        <Border Classes="composer">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
-                                    <Button Classes="ghost" FontSize="11" Command="{Binding DecrementRoundsCommand}" Padding="6,4">
-                                        <TextBlock Text="-" FontWeight="Bold" Foreground="#585070" />
-                                    </Button>
-                                    <Border Background="#1e1730" CornerRadius="6" Padding="8,3">
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <TextBlock Text="{Binding Rounds}" FontWeight="Bold" Foreground="#8b7cf8" FontSize="12" />
-                                            <TextBlock Text="rounds" FontSize="11" Foreground="#585070" />
-                                        </StackPanel>
-                                    </Border>
-                                    <Button Classes="ghost" FontSize="11" Command="{Binding IncrementRoundsCommand}" Padding="6,4">
-                                        <TextBlock Text="+" FontWeight="Bold" Foreground="#585070" />
+                                            <Border CornerRadius="6" Background="#1e1730" Padding="8,4" BorderBrush="#8b7cf8" BorderThickness="1"
+                                                    IsVisible="{Binding IsPlanMode}">
+                                                <TextBlock Text="Plan" FontSize="10" Foreground="#e8e0f4" />
+                                            </Border>
+                                        </Panel>
                                     </Button>
 
-                                    <Border Width="1" Height="14" Background="#2a2238" Margin="2,0" />
+                                    <Button Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" Tag="accept-edits" Click="OnModeClick">
+                                        <Panel>
+                                            <Border CornerRadius="6" Background="#151020" Padding="8,4" BorderBrush="Transparent" BorderThickness="1"
+                                                    IsVisible="{Binding !IsEditsMode}">
+                                                <TextBlock Text="Edits" FontSize="10" Foreground="#585070" />
+                                            </Border>
+                                            <Border CornerRadius="6" Background="#1e1730" Padding="8,4" BorderBrush="#10b981" BorderThickness="1"
+                                                    IsVisible="{Binding IsEditsMode}">
+                                                <TextBlock Text="Edits" FontSize="10" Foreground="#e8e0f4" />
+                                            </Border>
+                                        </Panel>
+                                    </Button>
 
-                                    <Border Background="{Binding BackendConnected, Converter={x:Static BoolConverters.Not}}" CornerRadius="6" Padding="8,3"
-                                            IsVisible="{Binding BackendConnected}">
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <Border Width="5" Height="5" CornerRadius="3" Background="#10b981" VerticalAlignment="Center" />
-                                            <TextBlock Text="connected" FontSize="10" Foreground="#10b981" />
-                                        </StackPanel>
-                                    </Border>
-                                    <Border CornerRadius="6" Padding="8,3" IsVisible="{Binding !BackendConnected}">
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <Border Width="5" Height="5" CornerRadius="3" Background="#ef4444" VerticalAlignment="Center" />
-                                            <TextBlock Text="offline" FontSize="10" Foreground="#ef4444" />
-                                        </StackPanel>
-                                    </Border>
+                                    <Button Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" Tag="allow-all" Click="OnModeClick">
+                                        <Panel>
+                                            <Border CornerRadius="6" Background="#151020" Padding="8,4" BorderBrush="Transparent" BorderThickness="1"
+                                                    IsVisible="{Binding !IsAllMode}">
+                                                <TextBlock Text="All" FontSize="10" Foreground="#585070" />
+                                            </Border>
+                                            <Border CornerRadius="6" Background="#1e1730" Padding="8,4" BorderBrush="#f59e0b" BorderThickness="1"
+                                                    IsVisible="{Binding IsAllMode}">
+                                                <TextBlock Text="All" FontSize="10" Foreground="#e8e0f4" />
+                                            </Border>
+                                        </Panel>
+                                    </Button>
+
+                                    <Button Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand" Tag="custom" Click="OnModeClick">
+                                        <Panel>
+                                            <Border CornerRadius="6" Background="#151020" Padding="8,4" BorderBrush="Transparent" BorderThickness="1"
+                                                    IsVisible="{Binding !IsCustomMode}">
+                                                <TextBlock Text="Custom" FontSize="10" Foreground="#585070" />
+                                            </Border>
+                                            <Border CornerRadius="6" Background="#1e1730" Padding="8,4" BorderBrush="#a855f7" BorderThickness="1"
+                                                    IsVisible="{Binding IsCustomMode}">
+                                                <TextBlock Text="Custom" FontSize="10" Foreground="#e8e0f4" />
+                                            </Border>
+                                        </Panel>
+                                    </Button>
                                 </StackPanel>
 
-                                <Grid>
-                                    <TextBox Classes="borderless" Text="{Binding PromptText}" MinHeight="50" MaxHeight="180"
-                                             Watermark="describe what you want to build..." />
-                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4">
-                                        <Button Classes="ghost" Content="Stop" FontSize="11"
-                                                IsVisible="{Binding IsRunning}" Command="{Binding StopDiscussionCommand}" />
-                                        <Button Classes="primary" Content="Start"
-                                                IsVisible="{Binding !IsRunning}" Command="{Binding StartDiscussionCommand}" />
-                                    </StackPanel>
-                                </Grid>
-                            </DockPanel>
-                        </Border>
-                    </StackPanel>
+                                <Border Width="1" Height="14" Background="#2a2238" Margin="2,0" VerticalAlignment="Center" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding BackendConnected}" VerticalAlignment="Center">
+                                    <Border Width="5" Height="5" CornerRadius="3" Background="#10b981" VerticalAlignment="Center" />
+                                    <TextBlock Text="connected" FontSize="10" Foreground="#10b981" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !BackendConnected}" VerticalAlignment="Center">
+                                    <Border Width="5" Height="5" CornerRadius="3" Background="#ef4444" VerticalAlignment="Center" />
+                                    <TextBlock Text="offline" FontSize="10" Foreground="#ef4444" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Grid>
+                                <TextBox Classes="borderless" Text="{Binding PromptText}" MinHeight="50" MaxHeight="180"
+                                         Watermark="describe what you want to build..." />
+                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4">
+                                    <Button Classes="ghost" Content="Stop" FontSize="11"
+                                            IsVisible="{Binding IsRunning}" Command="{Binding StopDiscussionCommand}" />
+                                    <Button Classes="primary" Content="Start"
+                                            IsVisible="{Binding !IsRunning}" Command="{Binding StartDiscussionCommand}" />
+                                </StackPanel>
+                            </Grid>
+                        </DockPanel>
+                    </Border>
                 </Border>
 
             </Grid>
@@ -267,10 +284,17 @@
                                                     Width="44" Height="44" Padding="0"
                                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                                     Cursor="Hand" CornerRadius="10" Margin="6,2"
-                                                    ToolTip.Tip="{Binding}">
-                                                <TextBlock Text="{Binding}" FontSize="9" Foreground="#7a6f96"
-                                                           TextAlignment="Center" TextTrimming="CharacterEllipsis"
-                                                           MaxWidth="40" />
+                                                    ToolTip.Tip="{Binding Name}" Tag="{Binding Name}" Click="OnProviderClick">
+                                                <Panel>
+                                                    <Image Source="{Binding Logo}" Width="24" Height="24"
+                                                           IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                                    <Border Width="28" Height="28" CornerRadius="14" Background="{Binding InitialColor}"
+                                                            IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNull}}"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Initial}" FontSize="12" FontWeight="Bold" Foreground="#ffffff"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                </Panel>
                                             </Button>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

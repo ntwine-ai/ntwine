@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -28,7 +29,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _statusText = "starting...";
     [ObservableProperty] private bool _backendConnected = false;
     [ObservableProperty] private string _sharedNotes = "";
-    [ObservableProperty] private int _rounds = 5;
+
+    [ObservableProperty] private int _activeAgentIndex = 0;
+    [ObservableProperty] private string _activeAgentName = "no agents";
+    [ObservableProperty] private string _activeAgentColor = "#7a6f96";
+    [ObservableProperty] private IBrush _activeAgentBrush = new SolidColorBrush(Color.Parse("#7a6f96"));
+    [ObservableProperty] private string _permissionMode = "plan";
 
     [ObservableProperty] private bool _isSettingsOpen = false;
     [ObservableProperty] private bool _isModelPickerOpen = false;
@@ -62,7 +68,7 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<ModelSlot> SelectedModels { get; } = new();
     public ObservableCollection<ThreadItem> Threads { get; } = new();
     public ObservableCollection<PickerModel> FilteredModels { get; } = new();
-    public ObservableCollection<string> ProviderFilters { get; } = new();
+    public ObservableCollection<ProviderItem> ProviderFilters { get; } = new();
 
     private static readonly string SettingsDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ntwine");
@@ -85,6 +91,7 @@ public partial class MainViewModel : ObservableObject
             SelectedModels.Add(new ModelSlot("google/gemini-2.5-flash-preview", "Gemini Flash", "#10b981", "$0.30/1M"));
         }
         AgentCount = SelectedModels.Count;
+        UpdateActiveAgent();
     }
 
     public MainViewModel() : this(new GoBackendProcess()) { }
@@ -154,7 +161,7 @@ public partial class MainViewModel : ObservableObject
                 prompt,
                 string.IsNullOrEmpty(ProjectPath) ? "." : ProjectPath,
                 modelIds,
-                Rounds,
+                5,
                 msg => Dispatcher.UIThread.Post(() =>
                 {
                     Messages.Add(msg);
@@ -209,6 +216,7 @@ public partial class MainViewModel : ObservableObject
         if (model == null) return;
         SelectedModels.Remove(model);
         AgentCount = SelectedModels.Count;
+        UpdateActiveAgent();
         SaveSettingsInternal();
     }
 
@@ -229,6 +237,7 @@ public partial class MainViewModel : ObservableObject
 
         SelectedModels.Add(new ModelSlot(modelId, name, color, ""));
         AgentCount = SelectedModels.Count;
+        UpdateActiveAgent();
         SaveSettingsInternal();
     }
 
@@ -242,6 +251,44 @@ public partial class MainViewModel : ObservableObject
     partial void OnSharedNotesChanged(string value)
     {
         HasNotes = !string.IsNullOrWhiteSpace(value);
+    }
+
+    public bool IsPlanMode => PermissionMode == "plan";
+    public bool IsEditsMode => PermissionMode == "accept-edits";
+    public bool IsAllMode => PermissionMode == "allow-all";
+    public bool IsCustomMode => PermissionMode == "custom";
+
+    partial void OnPermissionModeChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsPlanMode));
+        OnPropertyChanged(nameof(IsEditsMode));
+        OnPropertyChanged(nameof(IsAllMode));
+        OnPropertyChanged(nameof(IsCustomMode));
+    }
+
+    [RelayCommand]
+    private void CycleAgent()
+    {
+        if (SelectedModels.Count == 0) return;
+        ActiveAgentIndex = (ActiveAgentIndex + 1) % SelectedModels.Count;
+        UpdateActiveAgent();
+    }
+
+    private void UpdateActiveAgent()
+    {
+        if (SelectedModels.Count == 0)
+        {
+            ActiveAgentName = "no agents";
+            ActiveAgentColor = "#7a6f96";
+            ActiveAgentBrush = new SolidColorBrush(Color.Parse("#7a6f96"));
+            return;
+        }
+        var idx = Math.Clamp(ActiveAgentIndex, 0, SelectedModels.Count - 1);
+        ActiveAgentIndex = idx;
+        ActiveAgentName = SelectedModels[idx].DisplayName;
+        ActiveAgentColor = SelectedModels[idx].Color;
+        try { ActiveAgentBrush = new SolidColorBrush(Color.Parse(SelectedModels[idx].Color)); }
+        catch { ActiveAgentBrush = new SolidColorBrush(Color.Parse("#7a6f96")); }
     }
 
     [RelayCommand]
@@ -303,6 +350,7 @@ public partial class MainViewModel : ObservableObject
         var cleanName = CleanModelName(model.Name);
         SelectedModels.Add(new ModelSlot(model.Id, cleanName, OpenRouterService.GetAgentColor(SelectedModels.Count), model.CostDetail));
         AgentCount = SelectedModels.Count;
+        UpdateActiveAgent();
         IsModelPickerOpen = false;
         ModelSearchQuery = "";
         SaveSettingsInternal();
@@ -318,10 +366,21 @@ public partial class MainViewModel : ObservableObject
             var models = await _openRouter.FetchModels();
 
             ProviderFilters.Clear();
-            ProviderFilters.Add("All");
-            ProviderFilters.Add("Free");
-            foreach (var p in _openRouter.GetProviders())
-                ProviderFilters.Add(OpenRouterService.FormatProviderName(p));
+            ProviderFilters.Add(new ProviderItem("All", "", "#8b7cf8"));
+            ProviderFilters.Add(new ProviderItem("Free", "", "#10b981"));
+            foreach (var slug in _openRouter.GetProviders())
+            {
+                var name = OpenRouterService.FormatProviderName(slug);
+                var color = ProviderLogoService.GetProviderColor(slug);
+                var item = new ProviderItem(name, slug, color);
+                ProviderFilters.Add(item);
+                _ = Task.Run(async () =>
+                {
+                    var logo = await ProviderLogoService.LoadLogo(slug);
+                    if (logo != null)
+                        Dispatcher.UIThread.Post(() => item.Logo = logo);
+                });
+            }
 
             ApplyModelFilters();
             StatusText = $"{models.Count} models loaded";
@@ -347,7 +406,7 @@ public partial class MainViewModel : ObservableObject
 
         if (SelectedProviderFilter == "Free")
             all = all.Where(m => m.IsFree).ToList();
-        else if (SelectedProviderFilter != "All" && SelectedProviderFilter != "Free")
+        else if (SelectedProviderFilter != "All")
             all = all.Where(m => OpenRouterService.FormatProviderName(m.Provider) == SelectedProviderFilter).ToList();
 
         if (ShowFreeOnly)
@@ -371,18 +430,6 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void IncrementRounds()
-    {
-        if (Rounds < 20) Rounds++;
-    }
-
-    [RelayCommand]
-    private void DecrementRounds()
-    {
-        if (Rounds > 1) Rounds--;
-    }
-
     private static string CleanModelName(string name)
     {
         var clean = name;
@@ -402,7 +449,7 @@ public partial class MainViewModel : ObservableObject
             {
                 models = SelectedModels.Select(m => new { m.ModelId, m.DisplayName, m.Color, m.CostDetail }).ToList(),
                 project_path = ProjectPath,
-                rounds = Rounds,
+                permission_mode = PermissionMode,
                 openrouter_key = OpenRouterKey,
                 tavily_key = TavilyKey,
                 anthropic_key = AnthropicKey,
@@ -425,7 +472,7 @@ public partial class MainViewModel : ObservableObject
             var root = doc.RootElement;
 
             if (root.TryGetProperty("project_path", out var pp)) ProjectPath = pp.GetString() ?? "";
-            if (root.TryGetProperty("rounds", out var r)) Rounds = r.GetInt32();
+            if (root.TryGetProperty("permission_mode", out var pm)) PermissionMode = pm.GetString() ?? "plan";
             if (root.TryGetProperty("openrouter_key", out var ork)) OpenRouterKey = ork.GetString() ?? "";
             if (root.TryGetProperty("tavily_key", out var tk)) TavilyKey = tk.GetString() ?? "";
             if (root.TryGetProperty("anthropic_key", out var ak)) AnthropicKey = ak.GetString() ?? "";
@@ -567,5 +614,27 @@ public class PickerModel
         IsFree = isFree;
         ContextLength = contextLength;
         AlreadySelected = alreadySelected;
+    }
+}
+
+public class ProviderItem : ObservableObject
+{
+    public string Name { get; }
+    public string Slug { get; }
+    public string Initial => string.IsNullOrEmpty(Name) ? "?" : Name[..1].ToUpper();
+    public string InitialColor { get; }
+
+    private Avalonia.Media.Imaging.Bitmap? _logo;
+    public Avalonia.Media.Imaging.Bitmap? Logo
+    {
+        get => _logo;
+        set => SetProperty(ref _logo, value);
+    }
+
+    public ProviderItem(string name, string slug, string color = "#7a6f96")
+    {
+        Name = name;
+        Slug = slug;
+        InitialColor = color;
     }
 }
