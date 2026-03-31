@@ -30,6 +30,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _sharedNotes = "";
     [ObservableProperty] private int _rounds = 5;
 
+    [ObservableProperty] private bool _isSettingsOpen = false;
+    [ObservableProperty] private bool _hasNotes = false;
+
     [ObservableProperty] private string _openRouterKey = "";
     [ObservableProperty] private string _tavilyKey = "";
     [ObservableProperty] private string _anthropicKey = "";
@@ -79,6 +82,25 @@ public partial class MainViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(PromptText)) return;
 
+        if (PromptText.StartsWith("/add "))
+        {
+            var modelId = PromptText[5..].Trim();
+            AddModelById(modelId);
+            PromptText = "";
+            return;
+        }
+
+        if (PromptText.StartsWith("/remove "))
+        {
+            var modelName = PromptText[8..].Trim().ToLowerInvariant();
+            var toRemove = SelectedModels.FirstOrDefault(m =>
+                m.DisplayName.ToLowerInvariant().Contains(modelName) ||
+                m.ModelId.ToLowerInvariant().Contains(modelName));
+            if (toRemove != null) RemoveModel(toRemove);
+            PromptText = "";
+            return;
+        }
+
         if (SelectedModels.Count == 0)
         {
             StatusText = "add at least one model";
@@ -123,7 +145,7 @@ public partial class MainViewModel : ObservableObject
                     StatusText = "done";
                     if (!string.IsNullOrEmpty(CurrentDiscussionTitle))
                         Threads.Insert(0, new ThreadItem(CurrentDiscussionTitle));
-                    SaveSettings();
+                    SaveSettingsInternal();
                 })
             );
         }
@@ -154,7 +176,7 @@ public partial class MainViewModel : ObservableObject
         {
             ProjectPath = path;
             StatusText = $"project: {Path.GetFileName(path)}";
-            SaveSettings();
+            SaveSettingsInternal();
         }
     }
 
@@ -164,7 +186,7 @@ public partial class MainViewModel : ObservableObject
         if (model == null) return;
         SelectedModels.Remove(model);
         AgentCount = SelectedModels.Count;
-        SaveSettings();
+        SaveSettingsInternal();
     }
 
     [RelayCommand]
@@ -184,7 +206,39 @@ public partial class MainViewModel : ObservableObject
 
         SelectedModels.Add(new ModelSlot(modelId, name, color, ""));
         AgentCount = SelectedModels.Count;
-        SaveSettings();
+        SaveSettingsInternal();
+    }
+
+    public string ProjectDisplayName => string.IsNullOrEmpty(ProjectPath) ? "click to select..." : Path.GetFileName(ProjectPath);
+
+    partial void OnProjectPathChanged(string value)
+    {
+        OnPropertyChanged(nameof(ProjectDisplayName));
+    }
+
+    partial void OnSharedNotesChanged(string value)
+    {
+        HasNotes = !string.IsNullOrWhiteSpace(value);
+    }
+
+    [RelayCommand]
+    private void ToggleSettings()
+    {
+        IsSettingsOpen = !IsSettingsOpen;
+    }
+
+    [RelayCommand]
+    private void SaveSettings()
+    {
+        SaveSettingsInternal();
+        IsSettingsOpen = false;
+        StatusText = "settings saved";
+    }
+
+    [RelayCommand]
+    private void ShowAddModel()
+    {
+        StatusText = "type model ID (e.g. anthropic/claude-sonnet-4-6) in prompt and prefix with /add";
     }
 
     [RelayCommand]
@@ -199,7 +253,7 @@ public partial class MainViewModel : ObservableObject
         if (Rounds > 1) Rounds--;
     }
 
-    private void SaveSettings()
+    private void SaveSettingsInternal()
     {
         try
         {
@@ -267,15 +321,44 @@ public class ChatMessage
     public bool IsError { get; }
     public bool IsSystem { get; }
 
+    public string BackgroundColor { get; }
+    public string TextColor { get; }
+
     public ChatMessage(string name, string color, string content)
     {
         AgentName = name;
         AgentColor = color;
         Content = content;
         Timestamp = DateTime.Now.ToString("HH:mm");
-        IsToolCall = name == "tool" || content.StartsWith("[tool]") || content.StartsWith("[result]");
+        IsToolCall = content.StartsWith("[tool]") || content.StartsWith("[result]");
         IsError = name == "error";
         IsSystem = name == "system" || name == "spec";
+
+        if (IsError)
+        {
+            BackgroundColor = "#2a1520";
+            TextColor = "#f87171";
+        }
+        else if (IsToolCall)
+        {
+            BackgroundColor = "#0f1a1f";
+            TextColor = "#7a8f96";
+        }
+        else if (IsSystem)
+        {
+            BackgroundColor = "#12101a";
+            TextColor = "#7a6f96";
+        }
+        else if (name == "You")
+        {
+            BackgroundColor = "#2a1f45";
+            TextColor = "#e8e0f4";
+        }
+        else
+        {
+            BackgroundColor = "#1e1730";
+            TextColor = "#e8e0f4";
+        }
     }
 }
 

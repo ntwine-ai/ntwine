@@ -17,6 +17,7 @@
 
     <Grid ColumnDefinitions="260,*">
 
+        <!-- sidebar -->
         <Border Grid.Column="0" Classes="sidebar">
             <DockPanel>
 
@@ -34,7 +35,7 @@
                         Cursor="Hand" Command="{Binding SelectProjectCommand}">
                     <StackPanel>
                         <TextBlock Text="PROJECT" Classes="muted" FontSize="10" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding ProjectPath, FallbackValue='click to select...'}"
+                        <TextBlock Text="{Binding ProjectDisplayName, FallbackValue='click to select...'}"
                                    FontSize="12" Foreground="#b0a4c8" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                 </Button>
@@ -54,151 +55,219 @@
 
                 <StackPanel DockPanel.Dock="Bottom" Margin="16,0,16,16" Spacing="4">
                     <Separator Background="#1e1730" Height="1" Margin="0,0,0,8" />
-                    <Button Classes="ghost" Content="Settings" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
-                    <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="Credits:" FontSize="12" />
-                            <TextBlock Text="{Binding CreditsRemaining, FallbackValue='$0.00'}" FontSize="12" Foreground="#10b981" />
-                        </StackPanel>
-                    </Button>
+                    <Button Classes="ghost" Content="Settings" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Command="{Binding ToggleSettingsCommand}" />
                 </StackPanel>
 
             </DockPanel>
         </Border>
 
-        <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto">
+        <!-- main area -->
+        <Panel Grid.Column="1">
 
-            <Border Grid.Row="0" Background="#110d18" Padding="16,10" BorderBrush="#1e1730" BorderThickness="0,0,0,1">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
-                        <Border Background="#1e1730" CornerRadius="6" Padding="8,4">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Text="{Binding AgentCount, FallbackValue='3'}" FontSize="12" FontWeight="Bold" Foreground="#8b7cf8" />
-                                <TextBlock Text="agents" FontSize="12" Classes="muted" />
-                            </StackPanel>
-                        </Border>
-                        <Border Background="#1e1730" CornerRadius="6" Padding="8,4">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Text="{Binding ToolCount, FallbackValue='15'}" FontSize="12" FontWeight="Bold" Foreground="#10b981" />
-                                <TextBlock Text="tools" FontSize="12" Classes="muted" />
-                            </StackPanel>
-                        </Border>
-                        <Border Background="#1e1730" CornerRadius="6" Padding="8,4" Cursor="Hand">
-                            <TextBlock Text="{Binding StatusText, FallbackValue='ready'}" FontSize="11" Foreground="#7a6f96" />
-                        </Border>
-                    </StackPanel>
+            <!-- normal view (chat + composer) -->
+            <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding !IsSettingsOpen}">
 
-                    <TextBlock DockPanel.Dock="Left" Text="{Binding CurrentDiscussionTitle, FallbackValue='New Discussion'}"
-                               Classes="heading" FontSize="16" VerticalAlignment="Center" />
-                </DockPanel>
-            </Border>
-
-            <ScrollViewer Grid.Row="1" Padding="24,16">
-                <ItemsControl ItemsSource="{Binding Messages}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="#1e1730" CornerRadius="12" Padding="14,10" Margin="0,3">
-                                <StackPanel Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="8" Height="8" CornerRadius="4" Background="{Binding AgentColor}" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding AgentName}" FontSize="12" FontWeight="SemiBold" Foreground="{Binding AgentColor}" />
-                                        <TextBlock Text="{Binding Timestamp}" Classes="muted" FontSize="10" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="14" Foreground="#e8e0f4" Margin="16,0,0,0" />
+                <!-- top bar -->
+                <Border Grid.Row="0" Background="#110d18" Padding="16,10" BorderBrush="#1e1730" BorderThickness="0,0,0,1">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                            <Border Background="#1e1730" CornerRadius="6" Padding="8,4">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="{Binding AgentCount}" FontSize="12" FontWeight="Bold" Foreground="#8b7cf8" />
+                                    <TextBlock Text="agents" FontSize="12" Classes="muted" />
                                 </StackPanel>
                             </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-
-            <Border Grid.Row="2" Margin="24,0,24,16">
-                <StackPanel>
-
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,8">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <ItemsControl ItemsSource="{Binding SelectedModels}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" Spacing="6" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border CornerRadius="16" Background="#1e1730" BorderBrush="#2a2238" BorderThickness="1" Padding="10,5">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <Border Width="6" Height="6" CornerRadius="3" Background="{Binding Color}" VerticalAlignment="Center" />
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="#b0a4c8" />
-                                                <TextBlock Text="{Binding CostLabel}" FontSize="10" Foreground="#7a6f96" VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <Button Classes="ghost" Content="+ Add Model" FontSize="12" />
+                            <Border Background="#1e1730" CornerRadius="6" Padding="8,4">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="{Binding ToolCount}" FontSize="12" FontWeight="Bold" Foreground="#10b981" />
+                                    <TextBlock Text="tools" FontSize="12" Classes="muted" />
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#1e1730" CornerRadius="6" Padding="8,4">
+                                <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#7a6f96" />
+                            </Border>
                         </StackPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="{Binding CurrentDiscussionTitle}"
+                                   Classes="heading" FontSize="16" VerticalAlignment="Center" />
+                    </DockPanel>
+                </Border>
+
+                <!-- chat + spec split -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+
+                    <!-- messages -->
+                    <ScrollViewer Grid.Column="0" Padding="24,16" Name="ChatScroll">
+                        <ItemsControl ItemsSource="{Binding Messages}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="10" Padding="12,8" Margin="0,2"
+                                            Background="{Binding BackgroundColor}">
+                                        <StackPanel Spacing="3">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <Border Width="7" Height="7" CornerRadius="4"
+                                                        Background="{Binding AgentColor}" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding AgentName}" FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="{Binding AgentColor}" />
+                                                <TextBlock Text="{Binding Timestamp}" FontSize="9" Foreground="#585070"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="13"
+                                                       Foreground="{Binding TextColor}" Margin="13,0,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </ScrollViewer>
 
-                    <Border Classes="composer">
+                    <!-- shared spec panel (shows when notes exist) -->
+                    <Border Grid.Column="1" Width="300" Background="#0f0b15" BorderBrush="#1e1730" BorderThickness="1,0,0,0"
+                            IsVisible="{Binding HasNotes}">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                                <Button Classes="ghost" FontSize="11" Command="{Binding DecrementRoundsCommand}">
-                                    <TextBlock Text="-" FontWeight="Bold" Foreground="#7a6f96" />
-                                </Button>
-                                <Border Background="#1e1730" CornerRadius="6" Padding="8,3">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="{Binding Rounds}" FontWeight="Bold" Foreground="#8b7cf8" FontSize="12" />
-                                        <TextBlock Text="rounds" FontSize="11" Foreground="#7a6f96" />
-                                    </StackPanel>
-                                </Border>
-                                <Button Classes="ghost" FontSize="11" Command="{Binding IncrementRoundsCommand}">
-                                    <TextBlock Text="+" FontWeight="Bold" Foreground="#7a6f96" />
-                                </Button>
-
-                                <Border Width="1" Height="16" Background="#2a2238" Margin="4,0" />
-
-                                <Button Classes="ghost" Content="Plan" FontSize="11"
-                                        Command="{Binding SetModeCommand}" CommandParameter="Plan" />
-                                <Button Classes="ghost" Content="Execute" FontSize="11"
-                                        Command="{Binding SetModeCommand}" CommandParameter="Execute" />
-                                <Button Classes="ghost" Content="Review" FontSize="11"
-                                        Command="{Binding SetModeCommand}" CommandParameter="Review" />
-
-                                <Border Width="1" Height="16" Background="#2a2238" Margin="4,0" />
-
-                                <Border Background="#1e1730" CornerRadius="6" Padding="8,3"
-                                        IsVisible="{Binding BackendConnected}">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <Border Width="6" Height="6" CornerRadius="3" Background="#10b981" VerticalAlignment="Center" />
-                                        <TextBlock Text="backend" FontSize="10" Foreground="#10b981" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#1e1730" CornerRadius="6" Padding="8,3"
-                                        IsVisible="{Binding !BackendConnected}">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <Border Width="6" Height="6" CornerRadius="3" Background="#ef4444" VerticalAlignment="Center" />
-                                        <TextBlock Text="offline" FontSize="10" Foreground="#ef4444" />
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-
-                            <Grid>
-                                <TextBox Classes="composer-input" Text="{Binding PromptText}" MinHeight="60" MaxHeight="200" />
-                                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4">
-                                    <Button Classes="ghost" Content="Stop" FontSize="11"
-                                            IsVisible="{Binding IsRunning}"
-                                            Command="{Binding StopDiscussionCommand}" />
-                                    <Button Classes="primary" Content="Start"
-                                            IsVisible="{Binding !IsRunning}"
-                                            Command="{Binding StartDiscussionCommand}" />
-                                </StackPanel>
-                            </Grid>
+                            <Border DockPanel.Dock="Top" Padding="12,8" BorderBrush="#1e1730" BorderThickness="0,0,0,1">
+                                <DockPanel>
+                                    <TextBlock Text="Shared Spec" FontSize="13" FontWeight="SemiBold" Foreground="#8b7cf8" />
+                                    <Border Width="6" Height="6" CornerRadius="3" Background="#10b981"
+                                            VerticalAlignment="Center" HorizontalAlignment="Right" IsVisible="{Binding IsRunning}" />
+                                </DockPanel>
+                            </Border>
+                            <ScrollViewer Padding="12,8">
+                                <TextBlock Text="{Binding SharedNotes}" TextWrapping="Wrap" FontSize="12"
+                                           Foreground="#b0a4c8" FontFamily="JetBrains Mono,monospace" LineHeight="20" />
+                            </ScrollViewer>
                         </DockPanel>
                     </Border>
+                </Grid>
 
+                <!-- composer -->
+                <Border Grid.Row="2" Margin="24,0,24,16">
+                    <StackPanel>
+
+                        <!-- model pills -->
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <ItemsControl ItemsSource="{Binding SelectedModels}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="6" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="16" Background="#1e1730" BorderBrush="#2a2238" BorderThickness="1" Padding="10,5">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <Border Width="6" Height="6" CornerRadius="3" Background="{Binding Color}" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="#b0a4c8" />
+                                                    <TextBlock Text="{Binding CostDetail}" FontSize="10" Foreground="#585070" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Classes="ghost" Content="+ Add" FontSize="11" Command="{Binding ShowAddModelCommand}" />
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- input area -->
+                        <Border Classes="composer">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+                                    <Button Classes="ghost" FontSize="11" Command="{Binding DecrementRoundsCommand}" Padding="6,4">
+                                        <TextBlock Text="-" FontWeight="Bold" Foreground="#585070" />
+                                    </Button>
+                                    <Border Background="#1e1730" CornerRadius="6" Padding="8,3">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Text="{Binding Rounds}" FontWeight="Bold" Foreground="#8b7cf8" FontSize="12" />
+                                            <TextBlock Text="rounds" FontSize="11" Foreground="#585070" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Button Classes="ghost" FontSize="11" Command="{Binding IncrementRoundsCommand}" Padding="6,4">
+                                        <TextBlock Text="+" FontWeight="Bold" Foreground="#585070" />
+                                    </Button>
+
+                                    <Border Width="1" Height="14" Background="#2a2238" Margin="2,0" />
+
+                                    <Border Background="{Binding BackendConnected, Converter={x:Static BoolConverters.Not}}" CornerRadius="6" Padding="8,3"
+                                            IsVisible="{Binding BackendConnected}">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <Border Width="5" Height="5" CornerRadius="3" Background="#10b981" VerticalAlignment="Center" />
+                                            <TextBlock Text="connected" FontSize="10" Foreground="#10b981" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border CornerRadius="6" Padding="8,3" IsVisible="{Binding !BackendConnected}">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <Border Width="5" Height="5" CornerRadius="3" Background="#ef4444" VerticalAlignment="Center" />
+                                            <TextBlock Text="offline" FontSize="10" Foreground="#ef4444" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <Grid>
+                                    <TextBox Classes="composer-input" Text="{Binding PromptText}" MinHeight="50" MaxHeight="180" />
+                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4">
+                                        <Button Classes="ghost" Content="Stop" FontSize="11"
+                                                IsVisible="{Binding IsRunning}" Command="{Binding StopDiscussionCommand}" />
+                                        <Button Classes="primary" Content="Start"
+                                                IsVisible="{Binding !IsRunning}" Command="{Binding StartDiscussionCommand}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DockPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+
+            <!-- settings view -->
+            <ScrollViewer IsVisible="{Binding IsSettingsOpen}" Padding="40,50,40,20">
+                <StackPanel MaxWidth="500" Spacing="20">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Classes="ghost" Content="Close" Command="{Binding ToggleSettingsCommand}" />
+                        <TextBlock Text="Settings" FontSize="22" FontWeight="Bold" Foreground="#e8e0f4" />
+                    </DockPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="OPENROUTER API KEY" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                        <TextBox PasswordChar="*" Text="{Binding OpenRouterKey}" Watermark="sk-or-..."
+                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="10,8" FontSize="13" Foreground="#e8e0f4" />
+                        <TextBlock Text="get one at openrouter.ai/keys" FontSize="10" Foreground="#585070" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="TAVILY KEY (web search)" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                        <TextBox PasswordChar="*" Text="{Binding TavilyKey}" Watermark="tvly-..."
+                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="10,8" FontSize="13" Foreground="#e8e0f4" />
+                    </StackPanel>
+
+                    <Separator Background="#1e1730" Height="1" />
+
+                    <TextBlock Text="BRING YOUR OWN KEYS" Classes="muted" FontSize="10" FontWeight="SemiBold" />
+                    <TextBlock Text="paste your own API keys to use your billing. free, unlimited." FontSize="12" Foreground="#7a6f96" />
+
+                    <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,4,0,0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Anthropic" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" PasswordChar="*" Text="{Binding AnthropicKey}" Watermark="sk-ant-..."
+                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" Margin="0,2" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="OpenAI" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1" PasswordChar="*" Text="{Binding OpenAIKey}" Watermark="sk-..."
+                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" Margin="0,2" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Google" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="2" Grid.Column="1" PasswordChar="*" Text="{Binding GoogleKey}" Watermark="AIza..."
+                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" Margin="0,2" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="DeepSeek" FontSize="12" Foreground="#b0a4c8" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="3" Grid.Column="1" PasswordChar="*" Text="{Binding DeepSeekKey}" Watermark="sk-..."
+                                 Background="#1a1425" BorderBrush="#2a2238" CornerRadius="8" Padding="8,6" FontSize="12" Foreground="#e8e0f4" Margin="0,2" />
+                    </Grid>
+
+                    <Button Classes="primary" Content="Save" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Command="{Binding SaveSettingsCommand}" />
                 </StackPanel>
-            </Border>
+            </ScrollViewer>
 
-        </Grid>
+        </Panel>
     </Grid>
 </Window>
